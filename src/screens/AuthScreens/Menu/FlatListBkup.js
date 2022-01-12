@@ -67,7 +67,7 @@ const FlatMenuScreen = ({navigation}) => {
       setItems([...data.items]);
       setItemsBkup([...data.items]);
     } catch (e) {
-      console.log('error occured---', e.message);
+      console.log('error occured 2---', e.message);
     }
   };
 

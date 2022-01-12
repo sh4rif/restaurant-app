@@ -1,53 +1,65 @@
 import React, {useState, useEffect, useReducer} from 'react';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import {createDrawerNavigator} from '@react-navigation/drawer';
-// import {View} from 'react-native';
-
+import AsyncStorageLib from '@react-native-async-storage/async-storage';
 import {
   HomeStackScreen,
   SettingsStackScreen,
-  MenuStackScreens,
   TableStackScreens,
   OrderStackScreens,
   MenuTabScreen,
 } from './HomeStackScreens';
+
 import CustomDrawerContent from './DrawerContent';
 import RootStackScreen from './RootStackScreens';
-// import AuthStackScreen from './AuthStackScreen';
-// import {ActivityIndicator} from 'react-native-paper';
 import {MainContext} from '../components/context';
 import {MAIN_COLOR} from '../constants/colors';
-import {blankOrder} from '../constants';
+import {blankOrder, storageVarNames} from '../constants';
 
 const Drawer = createDrawerNavigator();
 
 function Routes() {
-  const [userToken, setUserToken] = useState(true);
-  const [state, setState] = useState({classes: [], items: []});
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userArea, setUserArea] = useState(null);
   const [user, setUser] = useState(null);
+  const [state, setState] = useState({classes: [], items: []});
   const [order, setOrder] = useState({...blankOrder});
   const [orders, setOrders] = useState([]);
 
-  const signIn = (username, password) => {
-    console.log({username, password});
-    return true;
+  useEffect(() => {
+    getArea();
+  }, []);
+
+  const getArea = async () => {
+    try {
+      const area = await AsyncStorageLib.getItem(storageVarNames.area);
+      setUserArea(JSON.parse(area));
+      console.log('Routes useEffect loaded', area);
+      console.log({myarea: JSON.parse(area)});
+    } catch (e) {}
+  };
+
+  const signIn = payload => {
+    // console.log({username, password});
+    // return true;
+    setUser({...payload});
   };
   const signOut = () => {
     // clear localstore
-    setUserToken(false);
+    setUser(null);
   };
 
   return (
     <MainContext.Provider
       value={{
+        isLoggedIn,
+        setIsLoggedIn,
         signIn,
-        setUserToken,
         signOut,
         state,
         setState,
+        userArea,
+        setUserArea,
         user,
-        setUser,
         order,
         setOrder,
         orders,
@@ -61,13 +73,7 @@ function Routes() {
           headerTintColor: '#fff',
           headerTitleStyle: {fontWeight: 'bold'},
         }}>
-        {!userToken ? (
-          <Drawer.Screen
-            name="RootStackScreen"
-            options={{headerShown: false}}
-            component={RootStackScreen}
-          />
-        ) : (
+        {isLoggedIn ? (
           <>
             <Drawer.Screen name="Home" component={HomeStackScreen} />
             <Drawer.Screen name="Tables" component={TableStackScreens} />
@@ -75,6 +81,12 @@ function Routes() {
             <Drawer.Screen name="Orders" component={OrderStackScreens} />
             <Drawer.Screen name="Settings" component={SettingsStackScreen} />
           </>
+        ) : (
+          <Drawer.Screen
+            name="RootStackScreen"
+            options={{headerShown: false}}
+            component={RootStackScreen}
+          />
         )}
       </Drawer.Navigator>
     </MainContext.Provider>

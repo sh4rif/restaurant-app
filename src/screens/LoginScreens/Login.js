@@ -15,19 +15,25 @@ import {
   Platform,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from 'react-native';
 
 import DismissKeyboard from '../../components/DismissKeyboard';
 import {MainContext} from '../../components/context';
 import {BUTTON_GRADIENT, ERR_CLR, MAIN_COLOR} from '../../constants/colors';
+import {LOGIN, storageVarNames} from '../../constants';
+import axios from 'axios';
 
 const LoginScreen = ({navigation}) => {
   const [showPwd, setShowPwd] = useState(true);
   const [checkTextInputChange, setCheckTextInputChange] = useState(false);
   const [loginURL, setLoginURL] = useState(null);
-
-  const [state, setState] = useState({username: '', password: ''});
-  const {signIn, setUserToken} = useContext(MainContext);
+  const [state, setState] = useState({
+    tag: 'login',
+    username: '',
+    password: '',
+  });
+  const {signIn, userArea, isLoggedIn, setIsLoggedIn} = useContext(MainContext);
   const {colors} = useTheme();
 
   const passwordRef = useRef();
@@ -39,35 +45,59 @@ const LoginScreen = ({navigation}) => {
     } else {
       setCheckTextInputChange(false);
     }
-    // Alert.alert('value', value);
   };
 
+  // useEffect(() => {
+  //   getLoginURL();
+  // }, []);
+
   useEffect(() => {
-    getLoginURL();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', e => {
+      getLoginURL();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const getLoginURL = async () => {
     try {
-      const url = await AsyncStorageLib.getItem('url');
-      if (url) {
-        setLoginURL(url);
-        console.log('url found', url);
+      const url = await AsyncStorageLib.getItem(storageVarNames.url);
+      if (!url) {
+        navigation.navigate('OptionsScreen', {screen: 'URLOptionsScreen'});
         return;
       }
-      navigation.navigate('OptionsScreen', {screen: 'URLOptionsScreen'});
+      setLoginURL(url);
     } catch (e) {
       console.log('error occured while fetching url from localstorage', e);
     }
   };
 
-  const loginHandler = (username, password) => {
-    const res = signIn(username, password);
-    if(res){
-      console.log('redirect to home screen')
-      setUserToken(true)
-      return;
+  const loginHandler = async () => {
+    // console.log('userArea', userArea);
+    console.log({loginURL, userArea});
+    // await AsyncStorageLib.removeItem(storageVarNames.area);
+    // await AsyncStorageLib.clear()
+    // return;
+    try {
+      console.log({url: `${loginURL}${LOGIN}`});
+      const {data} = await axios.post(`${loginURL}${LOGIN}`, state);
+      console.log(data);
+
+      if (data.error !== 0) {
+        Alert.alert('ERROR!!', data.error_msg);
+        return;
+      }
+      signIn(data);
+      if (userArea) {
+        console.log('set isLoggedIn, setIsLoggedIn to true')
+      } else {
+        navigation.navigate('OptionsScreen', {screen: 'AreaOptionsScreen'});
+      }
+
+      // navigation.navigate('HomeScreenStack', {screen: 'Home'});
+    } catch (e) {
+      console.log('Error Occured 1 -- ', e);
     }
-    console.log('error show here')
   };
   return (
     <DismissKeyboard>
@@ -101,9 +131,9 @@ const LoginScreen = ({navigation}) => {
               </Animatable.View>
             ) : null}
           </View>
-          <Animatable.View animation="fadeInLeft" duration={300}>
+          {/* <Animatable.View animation="fadeInLeft" duration={300}>
             <Text style={styles.errorMsg}>Invalid username or password!</Text>
-          </Animatable.View>
+          </Animatable.View> */}
 
           {/* password field */}
           <Text style={{...styles.text_footer, marginTop: 35}}>Password</Text>
@@ -135,12 +165,7 @@ const LoginScreen = ({navigation}) => {
 
           {/* buttons */}
           <View style={styles.button}>
-            <TouchableOpacity
-              style={styles.signIn}
-              onPress={() => {
-                loginHandler(state.username, state.password);
-                // signIn();
-              }}>
+            <TouchableOpacity style={styles.signIn} onPress={loginHandler}>
               <LinearGradient colors={BUTTON_GRADIENT} style={styles.signIn}>
                 <Text style={{...styles.textSign, color: '#fff'}}>
                   <FontAwesome name="door-open" size={25} /> Sign In

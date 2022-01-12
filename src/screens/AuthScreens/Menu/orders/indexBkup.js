@@ -70,7 +70,7 @@ const MenuScreen = ({navigation}) => {
       setClasses([...clses]);
       setItems([...data.items]);
     } catch (e) {
-      console.log('error occured---', e.message);
+      console.log('error occured 6---', e.message);
     }
   };
   const onClassClick = item => {

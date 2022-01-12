@@ -18,7 +18,8 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import DismissKeyboard from '../../components/DismissKeyboard';
 import {BUTTON_GRADIENT, ERR_CLR, MAIN_COLOR} from '../../constants/colors';
-import {baseURL} from '../../constants';
+import {baseURL, storageVarNames} from '../../constants';
+import AsyncStorageLib from '@react-native-async-storage/async-storage';
 
 const regEx = /^(ftp|http|https):\/\/[^ ",]+$/;
 
@@ -26,13 +27,19 @@ const URLOptionsScreen = ({navigation}) => {
   const {colors} = useTheme();
 
   const [url, setUrl] = useState(baseURL);
-  const onChangeHandler = value => {
-    setUrl(value);
-    navigation.popToTop();
-  };
+  // const onChangeHandler = value => {
+  //   setUrl(value);
+  // };
 
-  const loginHandler = (username, password) => {
-    signIn(username, password);
+  const setUrlOnPress = async () => {
+    try {
+      await AsyncStorageLib.setItem(storageVarNames.url, url);
+      // const area = await AsyncStorageLib.getItem(storageVarNames.url)
+      // console.log({area});
+      navigation.navigate('LoginScreen');
+    } catch (e) {
+      console.log('error:-', e);
+    }
   };
   return (
     <DismissKeyboard>
@@ -53,7 +60,7 @@ const URLOptionsScreen = ({navigation}) => {
               returnKeyType="next"
               style={{...styles.textInput, color: colors.text}}
               autoCapitalize="none"
-              onChangeText={val => onChangeHandler(val)}
+              onChangeText={val => setUrl(val)}
               // onEndEditing={(e)=>handleValidUser(e.nativeEvent.text)}
               // blurOnSubmit={false}
               value={url}
@@ -74,12 +81,7 @@ const URLOptionsScreen = ({navigation}) => {
 
           {/* buttons */}
           <View style={styles.button}>
-            <TouchableOpacity
-              style={styles.signIn}
-              onPress={() => {
-                // loginHandler(state.username, state.password);
-                // signIn();
-              }}>
+            <TouchableOpacity style={styles.signIn} onPress={setUrlOnPress}>
               <LinearGradient colors={BUTTON_GRADIENT} style={styles.signIn}>
                 <Text style={{...styles.textSign, color: '#fff'}}>
                   <FontAwesome name="door-open" size={25} /> Set URL

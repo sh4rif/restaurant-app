@@ -1,36 +1,43 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome5';
 import * as Animatable from 'react-native-animatable';
-import {useTheme} from 'react-native-paper';
+import AsyncStorageLib from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
-  Platform,
   SafeAreaView,
   StatusBar,
   FlatList,
+  Alert,
 } from 'react-native';
+
 import axiosClient from '../../constants/axiosClient';
-import {BUTTON_GRADIENT, ERR_CLR, MAIN_COLOR} from '../../constants/colors';
+import {BUTTON_GRADIENT, MAIN_COLOR} from '../../constants/colors';
 import LinearGradient from 'react-native-linear-gradient';
-import { CheckBox } from 'react-native-elements';
-import { GET_AREAS } from '../../constants';
+import {GET_AREAS, storageVarNames} from '../../constants';
+import {MainContext} from '../../components/context';
 
-
-const regEx = /^(ftp|http|https):\/\/[^ ",]+$/;
-
-const AreaOptionsScreen = () => {
+const AreaOptionsScreen = ({navigation}) => {
   const [state, setState] = useState([]);
   const [selectedArea, setSelectedArea] = useState(null);
-  const [ckbox, setCkbox] = useState(false)
-  const {colors} = useTheme();
+
+  const {userArea, setUserArea, user, isLoggedIn, setIsLoggedIn} =
+    useContext(MainContext);
 
   useEffect(() => {
     getAreas();
+    getSelectedArea();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', e => {
+      getSelectedArea();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const getAreas = async () => {
     try {
@@ -42,15 +49,39 @@ const AreaOptionsScreen = () => {
     }
   };
 
+  const getSelectedArea = async () => {
+    try {
+      const area = await AsyncStorageLib.getItem(storageVarNames.area);
+      setSelectedArea(JSON.parse(area));
+      setUserArea(JSON.parse(area));
+    } catch (e) {
+      console.log('error while fetching area---', e);
+    }
+  };
+  const setArea = async () => {
+    if (!selectedArea) {
+      Alert.alert('ERROR!!', 'Please Select an area');
+      return;
+    }
+    try {
+      const payload = JSON.stringify(selectedArea);
+      await AsyncStorageLib.setItem(storageVarNames.area, payload);
+      if (user) {
+        setIsLoggedIn(true);
+      } else {
+        navigation.navigate('LoginScreen');
+      }
+    } catch (e) {}
+  };
+
   const renderAreas = ({item, index}) => {
-    const bgColor = selectedArea === item.AREA_ID ? MAIN_COLOR : '#fff';
-    const fontColor = selectedArea === item.AREA_ID ? '#fff' : '#000';
-    // console.log({index, len: state.length - 1});
+    const aid = selectedArea && selectedArea.AREA_ID;
+    const bgColor = aid === item.AREA_ID ? MAIN_COLOR : '#fff';
+    const fontColor = aid === item.AREA_ID ? '#fff' : '#000';
     return (
       <TouchableOpacity
         onPress={() => {
-          console.log('item', item);
-          setSelectedArea(item.AREA_ID);
+          setSelectedArea({...item});
         }}>
         <View
           style={{
@@ -75,18 +106,7 @@ const AreaOptionsScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor={MAIN_COLOR} barStyle="light-content" />
       <View style={styles.header}>
-      <CheckBox
-        checked={ckbox}
-        onPress={(val) => {
-          console.log('val', ckbox)
-          setCkbox(!ckbox)
-        }}
-        checkedColor='#fff'
-      />
-
-        {/* <Text style={styles.text_header}>
-          Please Select An Area
-        </Text> */}
+        <Text style={styles.text_header}>Please Select An Area</Text>
         {/* <Text>{JSON.stringify(state)}</Text> */}
       </View>
       <Animatable.View animation="fadeInUpBig" style={styles.footer}>
@@ -101,12 +121,7 @@ const AreaOptionsScreen = () => {
 
         {/* buttons */}
         <View style={styles.button}>
-          <TouchableOpacity
-            style={styles.signIn}
-            onPress={() => {
-              // loginHandler(state.username, state.password);
-              // signIn();
-            }}>
+          <TouchableOpacity style={styles.signIn} onPress={setArea}>
             <LinearGradient colors={BUTTON_GRADIENT} style={styles.signIn}>
               <Text
                 style={{...styles.textSign, color: '#fff', letterSpacing: 1}}>
@@ -119,15 +134,6 @@ const AreaOptionsScreen = () => {
     </SafeAreaView>
   );
 };
-
-// const styles = StyleSheet.create({
-//   body: {
-//     flex: 1,
-//     alignItems: 'center',
-//     justifyContent: 'center',
-//     flexDirection: 'row',
-//   },
-// });
 
 const styles = StyleSheet.create({
   container: {

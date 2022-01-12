@@ -44,7 +44,7 @@ const TableScreen = () => {
       //   .get(url)
       //   .then(res => console.log(res.data))
       //   .then(err => console.log('----err---', err.response.data.message));
-      console.log('error occured---', e.message);
+      console.log('error occured 4---', e.message);
     }
   };
 

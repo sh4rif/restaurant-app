@@ -1,13 +1,14 @@
+import AsyncStorageLib from '@react-native-async-storage/async-storage';
 import React, {useContext, useEffect} from 'react';
 import {View, Text, StyleSheet, StatusBar, SafeAreaView} from 'react-native';
 import ButtonComponent from '../../components/button';
 import {MainContext} from '../../components/context';
-import {GET_ITEMS} from '../../constants';
+import {GET_ITEMS, storageVarNames} from '../../constants';
 import axios from '../../constants/axiosClient';
 import {MAIN_COLOR} from '../../constants/colors';
 
 const HomeScreen = ({navigation}) => {
-  const {state, setState} = useContext(MainContext);
+  const {state, setState, user, userArea, signOut} = useContext(MainContext);
 
   useEffect(() => {
     console.log('home component did mout ran', state);
@@ -23,7 +24,7 @@ const HomeScreen = ({navigation}) => {
         classes: data.classes,
       });
     } catch (e) {
-      console.log('error occured---', e.message);
+      console.log('error occured 1---', e.message);
     }
   };
 
@@ -56,7 +57,10 @@ const HomeScreen = ({navigation}) => {
               title="Take Order"
               onPress={() => {
                 // navigation.navigate('Tables');
-                console.log(state)
+                console.log({state, user, userArea})
+                AsyncStorageLib.clear();
+                AsyncStorageLib.removeItem(storageVarNames.area);
+                signOut();
               }}
             />
           </Text>

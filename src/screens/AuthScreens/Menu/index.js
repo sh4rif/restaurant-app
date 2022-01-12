@@ -55,7 +55,7 @@ const MenuScreen = ({navigation}) => {
       setClasses([...clses]);
       setItems([...state.items]);
     } catch (e) {
-      console.log('error occured---', e.message);
+      console.log('error occured 5---', e.message);
     }
   };
   const onClassClick = item => {
