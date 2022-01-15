@@ -30,8 +30,13 @@ const MenuScreen = ({navigation}) => {
   const {colors} = useTheme();
 
   useEffect(() => {
-    getData();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', e => {
+      getData();
+      // getLoginURL();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const getSelectedIClassItem = (items, class_id) => {
     const filteredItems = items
@@ -59,11 +64,12 @@ const MenuScreen = ({navigation}) => {
     }
   };
   const onClassClick = item => {
-    console.log({item});
+    // console.log({item});
     // setSelectedClass(item);
     setSelectedClassId(item.CLS_ID);
     // const a = getSelectedIClassItem(items, item.CLS_ID);
-    setSelectedItems([...getSelectedIClassItem(items, item.CLS_ID)]);
+    const classItems = getSelectedIClassItem(items, item.CLS_ID);
+    setSelectedItems([...classItems]);
   };
 
   const verifyMemberonPress = value => {
@@ -103,7 +109,6 @@ const MenuScreen = ({navigation}) => {
       if (idx !== -1) {
         ord.splice(idx, 1);
       }
-      console.log();
       setOrder({...order, order: ord});
       return;
     }
@@ -117,15 +122,15 @@ const MenuScreen = ({navigation}) => {
   };
 
   const renderMenuBody = ({item, index}) => {
-    const orderedItem = order.order.find(it=> item.ITEM_ID === it.ITEM_ID)
-    let isChecked = orderedItem && orderedItem.checked || item.checked;
+    const orderedItem = order.order.find(it => item.ITEM_ID === it.ITEM_ID);
+    let isChecked = (orderedItem && orderedItem.checked) || item.checked;
     return (
       <View
         style={{
           flexDirection: 'row',
           backgroundColor: index % 2 === 0 ? '#fff' : '#f2f2f2',
         }}>
-        <View style={{...styles.menuBody, width: '15%'}}>
+        <View style={{...styles.menuBody, width: '10%'}}>
           <Text style={styles.headerTxt}>
             <CheckBox
               // disabled={true}
@@ -148,22 +153,16 @@ const MenuScreen = ({navigation}) => {
         <View
           style={{
             ...styles.menuBody,
-            width: '50%',
-            // backgroundColor: 'purple',
+            width: '55%',
             alignItems: 'flex-start',
+            justifyContent: 'center',
           }}>
           <Text style={styles.headerTxt}>{item.ITEM_NAME}</Text>
         </View>
-        <View
-          style={{
-            ...styles.menuBody,
-            // backgroundColor: 'wheat',
-            width: '18%',
-          }}>
+        <View style={{...styles.menuBody, width: '18%'}}>
           <Text style={styles.headerTxt}>{item.ITEM_ID}</Text>
         </View>
-        <View style={{...styles.menuBody, width: '18%'}}>
-          {/* <Text style={styles.headerTxt}>QTY</Text> */}
+        <View style={{...styles.menuBody, width: '17%'}}>
           <TextInput
             style={{...styles.textInput, color: colors.text, width: '100%'}}
             autoCapitalize="words"
@@ -171,7 +170,7 @@ const MenuScreen = ({navigation}) => {
             onChangeText={value => {
               onQtyChange(value, item);
             }}
-            value={orderedItem && orderedItem.qty || ''}
+            value={(orderedItem && orderedItem.qty) || ''}
             // onChange={onInputChange}
           />
         </View>
@@ -213,15 +212,11 @@ const MenuScreen = ({navigation}) => {
               <View
                 style={{
                   ...styles.header1,
-                  width: '15%',
+                  width: '12%',
                 }}>
                 <Text style={{...styles.headerTxt, color: '#fff'}}>ADD</Text>
               </View>
-              <View
-                style={{
-                  ...styles.header1,
-                  width: '40%',
-                }}>
+              <View style={{...styles.header1, width: '50%'}}>
                 <Text
                   style={{
                     ...styles.headerTxt,
@@ -231,14 +226,10 @@ const MenuScreen = ({navigation}) => {
                   ITEM NAME
                 </Text>
               </View>
-              <View
-                style={{
-                  ...styles.header1,
-                  width: '22%',
-                }}>
+              <View style={{...styles.header1, width: '20%'}}>
                 <Text style={[styles.headerTxt, {color: '#fff'}]}>ITEM ID</Text>
               </View>
-              <View style={{...styles.header1, width: '23%'}}>
+              <View style={{...styles.header1, width: '18%'}}>
                 <Text style={{...styles.headerTxt, color: '#fff'}}>QTY</Text>
               </View>
             </View>
@@ -313,6 +304,8 @@ const styles = StyleSheet.create({
     color: '#05375a',
     borderWidth: 1,
     borderColor: '#ccc',
+    // borderBottomColor: 'rgba(0,0,0,.7)',
+    // borderBottomWidth: 1,
     height: 45,
     width: '45%',
     fontSize: 16,

@@ -9,7 +9,7 @@ const initialState = {
   qot: null,
   menu: {
     table_id: null,
-    user_id: null,
+    empno: null,
     qot: null,
     items: [],
   },

@@ -1,7 +1,6 @@
 import React, {useState, useEffect, useContext} from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
-
-import {useTheme} from 'react-native-paper';
+import {CheckBox} from 'react-native-elements';
 import {
   View,
   Text,
@@ -9,41 +8,141 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  Alert,
 } from 'react-native';
+
 import {MainContext} from '../../../components/context';
-import axios from '../../../constants/axiosClient';
 import {ERR_CLR, MAIN_COLOR, SUCCESS_COLOR} from '../../../constants/colors';
 import DismissKeyboard from '../../../components/DismissKeyboard';
-// import VerifyMember from './VerifyMember';
-// import {blankOrder, GET_ITEMS} from '../../../constants';
+import {formatNumber} from '../../../utils/functions';
+import {PLACE_ORDER} from '../../../constants';
+import axios from 'axios';
 
 const ViewOrderScreen = ({navigation}) => {
-  //   const [order, setOrder] = useState({});
-  const {order, setOrder} = useContext(MainContext);
-  const {colors} = useTheme();
+  const [showComments, setShowComments] = useState(false);
+  const [total, setTotal] = useState({
+    taxable: 0,
+    non_taxable: 0,
+    tax: 0,
+    sum: 0,
+  });
+  const {order, setOrder, baseURL, user, userArea} = useContext(MainContext);
 
-  //   useEffect(() => {
-  //     console.log(state.order);
-  //   }, []);
+  useEffect(() => {
+    calculateTotal(order.order);
+  }, []);
 
-  //   useEffect(() => {
-  //     // console.log('ran on screen change')
-  //     const unsubscribe = navigation.addListener('focus', e => {
-  //     //   setOrder({...state.order});
-  //       console.log('revuew order screen ran', e);
-  //     });
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', e => {
+      calculateTotal(order.order);
+    });
 
-  //     return unsubscribe;
-  //   }, [navigation]);
+    return unsubscribe;
+  }, [navigation]);
 
-  const deleteRow = (item, index) => {
-    console.log({item, index});
+  const placeOrder = async () => {
+    const orderItems = order.order.filter(o => o.qty > 0 && o.checked);
+    const orderToSumbit = {
+      ...order,
+      qot: user.QOT,
+      area_id: userArea.AREA_ID,
+      orders: orderItems,
+    };
+    delete orderToSumbit.order;
+    delete orderToSumbit.order_time;
+    const url = `${baseURL}${PLACE_ORDER}`;
+    try {
+      const {data} = await axios.post(url, orderToSumbit);
+      console.log(data);
+      if (data.error !== 0) {
+        Alert.alert('Order', 'Order failed!, please try again');
+        return;
+      }
+      
+      Alert.alert('Order', 'Order Placed Successfully!');
+      setOrder({
+        empno: '',
+        table_id: '',
+        order_date: '',
+        order_time: '',
+        order: [],
+      });
+      navigation.navigate('Home');
+    } catch (e) {
+      console.log('error while saving order', e);
+    }
+    console.log({
+      orderToSumbit,
+      url: url,
+      user,
+      userArea,
+    });
+  };
+
+  const onValChange = (keyName, value, item, index) => {
+    const orderItems = order.order;
+    orderItems[index] = {...item, [keyName]: value};
+
+    if (keyName === 'qty') {
+      if (value === '0') {
+        deleteRow(index);
+      }
+      calculateTotal(orderItems);
+    }
+
+    setOrder({...order, order: orderItems});
+  };
+
+  const deleteRow = index => {
+    const orderItems = order.order;
+    orderItems.splice(index, 1);
+    calculateTotal(orderItems);
+    setOrder({...order, order: orderItems});
+  };
+
+  const addMoreItems = () => {
+    navigation.navigate('Menu', {screen: 'MenuScreen'});
+  };
+
+  const calculateTotal = items => {
+    let taxable = 0;
+    let non_taxable = 0;
+    const taxable_amounts = [];
+    const taxable_items = items
+      .filter(order => order.TAXABLE && order.checked)
+      .forEach(item => {
+        const price = parseInt(item.SALE_PRICE);
+        const tax_rate = parseInt(item.TAX_RATE);
+        const qty = parseInt(item.qty) || 0;
+        const row_total = qty * price;
+        taxable += row_total;
+        const row_tax = (row_total / 100) * tax_rate;
+        taxable_amounts.push(row_tax);
+        // console.log({price, tax_rate, qty, row_total, row_tax});
+      });
+
+    const non_taxable_items = items
+      .filter(ord => !ord.TAXABLE && ord.checked)
+      .forEach(item => {
+        const price = parseInt(item.SALE_PRICE);
+        const qty = parseInt(item.qty) || 0;
+        const row_total = qty * price;
+        non_taxable += row_total;
+      });
+
+    const tax = Math.ceil(taxable_amounts.reduce((a, b) => a + b, 0));
+    const sum = tax + non_taxable + taxable;
+    // console.log({tax, sum});
+    setTotal({...total, non_taxable, taxable, tax, sum});
   };
 
   const ItemHeaders = () => {
     return (
       <View style={{flexDirection: 'row'}}>
-        <View style={{...styles.header1, width: '50%'}}>
+        <View style={{...styles.header1, width: '10%'}}>
+          <Text style={{...styles.headerTxt}}>Sr.</Text>
+        </View>
+        <View style={{...styles.header1, width: '40%'}}>
           <Text style={{...styles.headerTxt, letterSpacing: 2}}>Item Name</Text>
         </View>
         <View style={{...styles.header1, width: '20%'}}>
@@ -62,11 +161,14 @@ const ViewOrderScreen = ({navigation}) => {
     return (
       <>
         <View style={{flexDirection: 'row', backgroundColor: bgColor}}>
+          <View style={{...styles.menuBody, width: '5%'}}>
+            <Text style={{...styles.bodyTxt}}>{index + 1}</Text>
+          </View>
           <View style={{...styles.menuBody, width: '50%'}}>
             <Text style={styles.bodyTxt}>{item.ITEM_NAME}</Text>
           </View>
           <View
-            style={{...styles.menuBody, alignItems: 'center', width: '20%'}}>
+            style={{...styles.menuBody, alignItems: 'center', width: '15%'}}>
             <Text style={styles.bodyTxt}>{item.ITEM_ID}</Text>
           </View>
           <View
@@ -75,42 +177,64 @@ const ViewOrderScreen = ({navigation}) => {
               style={styles.textInput}
               autoCapitalize="words"
               keyboardType="numeric"
-              onChangeText={val => {
-                console.log('val---', val);
-              }}
+              onChangeText={val => onValChange('qty', val, item, index)}
               value={item.qty}
               // onChange={onInputChange}
             />
           </View>
           <TouchableOpacity
             style={{...styles.deleteBtn, width: '12%'}}
-            onPress={() => deleteRow(item, index)}>
+            onPress={() => deleteRow(index)}>
             <Icon name="ios-trash-bin" size={26} color={ERR_CLR} />
           </TouchableOpacity>
         </View>
-        <View style={{...styles.comments, backgroundColor: bgColor}}>
-          <Text style={{fontWeight: '600', color: '#aaa'}}>COMMENTS : </Text>
-          <TextInput
-            style={{...styles.textInput, width: '80%'}}
-            autoCapitalize="words"
-            onChangeText={val => {
-              console.log('val---', val);
-            }}
-            value={item.comments}
-          />
-        </View>
-        {/* <View style={{paddingBottom: 10, backgroundColor: bgColor}}>
-            <Text style={{fontWeight: '600',}}>COMMENTS : </Text>
-          <TextInput
-            style={{...styles.textInput}}
-            autoCapitalize="words"
-            onChangeText={val => {
-              console.log('val---', val);
-            }}
-            value={item.comments}
-          />
-        </View> */}
+        {showComments && item.qty > 0 ? (
+          <View style={{...styles.comments, backgroundColor: bgColor}}>
+            <Text style={{fontWeight: '600', color: '#aaa'}}>COMMENTS : </Text>
+            <TextInput
+              style={{...styles.textInput, width: '83%'}}
+              autoCapitalize="words"
+              onChangeText={val => onValChange('comments', val, item, index)}
+              value={item.comments}
+            />
+          </View>
+        ) : null}
       </>
+    );
+  };
+
+  const renderTotal = () => {
+    return (
+      <View style={styles.totalWrapper}>
+        <View style={{marginRight: 20}}>
+          <View style={styles.row}>
+            <Text style={styles.totalRow}>Total Taxable :</Text>
+            <Text style={styles.numbers}>{formatNumber(total.taxable)}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.totalRow}>Total Non-Taxable :</Text>
+            <Text style={styles.numbers}>
+              {formatNumber(total.non_taxable)}
+            </Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={{...styles.totalRow, borderBottomWidth: 1}}>
+              Tax :
+            </Text>
+            <Text style={{...styles.numbers, borderBottomWidth: 1}}>
+              {formatNumber(total.tax)}
+            </Text>
+          </View>
+          <View style={{...styles.row, marginBottom: 0}}>
+            <Text style={{...styles.totalRow, ...styles.totalTxt}}>
+              Total :
+            </Text>
+            <Text style={{...styles.numbers, ...styles.totalTxt}}>
+              {formatNumber(total.sum)}
+            </Text>
+          </View>
+        </View>
+      </View>
     );
   };
 
@@ -135,21 +259,42 @@ const ViewOrderScreen = ({navigation}) => {
       <View style={styles.body}>
         <View style={styles.menuWrapper}>
           <View>
+            <View style={{marginBottom: 10, flexDirection: 'row'}}>
+              <View style={{width: '50%', flexDirection: 'row'}}>
+                <Text style={styles.member}>Member</Text>
+                <Text
+                  style={{
+                    ...styles.member,
+                    color: MAIN_COLOR,
+                    fontWeight: 'bold',
+                  }}>
+                  R-369
+                </Text>
+              </View>
+              <View style={{flexDirection: 'row'}}>
+                <Text style={styles.member}>
+                  {showComments ? 'Hide' : 'Show'} Comments
+                </Text>
+                <CheckBox
+                  checked={showComments}
+                  onPress={() => {
+                    setShowComments(!showComments);
+                  }}
+                  checkedColor={SUCCESS_COLOR}
+                />
+              </View>
+            </View>
             <ItemHeaders />
             <FlatList
               numColumns={1}
               keyExtractor={(item, index) => item.ITEM_ID}
-              data={order.order.filter(order => order.checked)}
+              data={order.order.filter(o => o.checked)}
               renderItem={renderItems}
             />
-            <View style={{flexDirection: 'row'}}>
-              <View
-                style={{
-                  ...styles.header1,
-                  backgroundColor: SUCCESS_COLOR,
-                  width: '50%',
-                }}>
-                <TouchableOpacity style={styles.deleteBtn} onPress={() => {}}>
+            {renderTotal()}
+            {/* <View style={{flexDirection: 'row'}}>
+              <View style={{...styles.header1, ...styles.addItems}}>
+                <TouchableOpacity style={styles.deleteBtn} onPress={addMoreItems}>
                   <Text style={{...styles.headerTxt, letterSpacing: 1}}>
                     <Icon name="add-circle-outline" size={26} /> ADD ITEMS
                   </Text>
@@ -157,29 +302,43 @@ const ViewOrderScreen = ({navigation}) => {
               </View>
 
               <View style={{...styles.header1, width: '50%'}}>
-                {/* <Text style={{...styles.headerTxt, letterSpacing: 2}}>
-                  Item Name
-                </Text> */}
                 <TouchableOpacity style={styles.deleteBtn} onPress={() => {}}>
                   <Text style={{...styles.headerTxt, letterSpacing: 1}}>
                     Place Order <Icon name="checkmark-done-outline" size={26} />
                   </Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </View> */}
           </View>
 
           {/* <View>
-            <TouchableOpacity
-              style={styles.deleteBtn}
-              onPress={() => deleteRow(item, index)}>
-              <Icon name="ios-trash-bin" size={26} color={ERR_CLR} />
-            </TouchableOpacity>
+            <Text>Bottom area</Text>
           </View> */}
         </View>
         {/* <View style={styles.menuWrapper}>
           <Text>Footer</Text>
         </View> */}
+        <View style={{flexDirection: 'row'}}>
+          <View style={{...styles.header1, ...styles.addItems}}>
+            <TouchableOpacity style={styles.deleteBtn} onPress={addMoreItems}>
+              <Text style={{...styles.headerTxt, letterSpacing: 1}}>
+                <Icon name="add-circle-outline" size={26} /> ADD ITEMS
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{...styles.header1, width: '50%'}}>
+            <TouchableOpacity
+              style={styles.deleteBtn}
+              onPress={() => {
+                placeOrder(order.order);
+              }}>
+              <Text style={{...styles.headerTxt, letterSpacing: 1}}>
+                Place Order <Icon name="checkmark-done-outline" size={26} />
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </DismissKeyboard>
   );
@@ -200,9 +359,9 @@ const styles = StyleSheet.create({
   menuWrapper: {
     backgroundColor: '#fff',
     flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'flex-start',
+    // flexDirection: 'row',
+    // flexWrap: 'wrap',
+    // alignItems: 'flex-start',
   },
   headerTxt: {
     fontSize: 18,
@@ -227,10 +386,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   comments: {
-    paddingVertical: 15,
-    paddingHorizontal: 10,
+    padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  addItems: {
+    backgroundColor: SUCCESS_COLOR,
+    width: '50%',
+  },
+  totalRow: {fontSize: 20, fontWeight: 'bold', width: 200},
+  totalTxt: {fontSize: 26, color: MAIN_COLOR},
+  numbers: {
+    width: 150,
+    fontSize: 20,
+    textAlign: 'right',
+    fontWeight: 'bold',
+    // borderLeftWidth: 1
+  },
+  member: {
+    fontSize: 20,
+    paddingHorizontal: 25,
+    paddingVertical: 10,
+  },
+  row: {flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 5},
+  totalWrapper: {
+    marginTop: 50,
+    height: 150,
+    backgroundColor: 'rgba(0,0,0,.05)',
+    justifyContent: 'center',
   },
 });
 

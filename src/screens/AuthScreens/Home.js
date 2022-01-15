@@ -1,28 +1,45 @@
-import AsyncStorageLib from '@react-native-async-storage/async-storage';
 import React, {useContext, useEffect} from 'react';
+import axios from 'axios';
 import {View, Text, StyleSheet, StatusBar, SafeAreaView} from 'react-native';
+import AsyncStorageLib from '@react-native-async-storage/async-storage';
+
 import ButtonComponent from '../../components/button';
 import {MainContext} from '../../components/context';
-import {GET_ITEMS, storageVarNames} from '../../constants';
-import axios from '../../constants/axiosClient';
+import {blankOrder, GET_ITEMS, storageVarNames} from '../../constants';
 import {MAIN_COLOR} from '../../constants/colors';
 
 const HomeScreen = ({navigation}) => {
-  const {state, setState, user, userArea, signOut} = useContext(MainContext);
+  const {state, setState, user, userArea, setOrder, baseURL, setBaseURL} =
+    useContext(MainContext);
 
   useEffect(() => {
-    console.log('home component did mout ran', state);
     getData();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', e => {
+      getData();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   const getData = async () => {
     try {
-      const {data} = await axios.get(GET_ITEMS);
+      let url = baseURL;
+      if (!baseURL) {
+        const base_url = await AsyncStorageLib.getItem(storageVarNames.url);
+        url = base_url;
+        setBaseURL(base_url);
+      }
+      const {data} = await axios.get(`${url}${GET_ITEMS}`);
       setState({
         ...state,
         items: data.items,
         classes: data.classes,
       });
+      // console.log({itemsFromHome: data});
+      setOrder({...blankOrder});
     } catch (e) {
       console.log('error occured 1---', e.message);
     }
@@ -33,22 +50,18 @@ const HomeScreen = ({navigation}) => {
       <StatusBar backgroundColor={MAIN_COLOR} barStyle="light-content" />
       <View style={styles.body}>
         <View style={styles.row1}>
-          {/* <View style={styles.view1}>
-        <Text style={styles.text}>1</Text>
-        </View>
-        <View style={styles.view2}>
-        <Text style={styles.text}>2</Text>
-        </View> */}
           <View style={styles.view3}>
-            <Text style={styles.text}>Thur 30/12/2021</Text>
+            <Text style={styles.text}>Date : {user && user.wdate}</Text>
           </View>
           <View style={styles.view3}>
-            <Text style={styles.text}>Login Time: 15:26</Text>
+            <Text style={styles.text}>
+              Login Time: {user && user.login_time}
+            </Text>
           </View>
         </View>
         <View style={styles.row2}>
           <Text style={{...styles.text, color: '#fff'}}>
-            Muhammad Usman Sharif
+            {user && user.full_name}
           </Text>
         </View>
         <View style={styles.row3}>
@@ -56,11 +69,10 @@ const HomeScreen = ({navigation}) => {
             <ButtonComponent
               title="Take Order"
               onPress={() => {
-                // navigation.navigate('Tables');
-                console.log({state, user, userArea})
-                AsyncStorageLib.clear();
-                AsyncStorageLib.removeItem(storageVarNames.area);
-                signOut();
+                navigation.navigate('Tables');
+                // AsyncStorageLib.clear();
+                // AsyncStorageLib.removeItem(storageVarNames.area);
+                // signOut();
               }}
             />
           </Text>
@@ -142,7 +154,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontSize: 24,
+    fontSize: 26,
     // color: '#fff',
     fontStyle: 'italic',
     fontWeight: 'bold',

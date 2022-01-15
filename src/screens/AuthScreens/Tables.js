@@ -1,42 +1,108 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {addDays, format} from 'date-fns';
+import {format} from 'date-fns';
+import axios from 'axios';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+
+import AsyncStorageLib from '@react-native-async-storage/async-storage';
 import {
   FlatList,
   RefreshControl,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   View,
   Dimensions,
   TouchableOpacity,
+  Image,
+  TextInput,
 } from 'react-native';
-import {ERR_CLR, MAIN_COLOR} from '../../constants/colors';
-import axios from '../../constants/axiosClient';
-import { GET_TABLES } from '../../constants';
+import {ERR_CLR, MAIN_COLOR, SUCCESS_COLOR} from '../../constants/colors';
+import {GET_TABLES, storageVarNames} from '../../constants';
+import {MainContext} from '../../components/context';
 
-const TableScreen = () => {
+const blankOrder = {
+  empno: '',
+  table_id: '',
+  order_date: '',
+  order_time: '',
+  order: [],
+};
+const TableScreen = ({navigation}) => {
   const [refreshing, setRefreshing] = useState(false);
-  const [wdate, setWdate] = useState('12-DEC-21');
-  const [areaId, setAreaId] = useState(2);
+  // const [wdate, setWdate] = useState('12-DEC-21');
+  // const [areaId, setAreaId] = useState(null);
   const [state, setState] = useState([]);
+  const [stateBkup, setStateBkup] = useState([]);
+  const [searchStr, setSearchStr] = useState('');
 
-  const onPress = (e, item) => {
-    console.log('btn pressed', e, item);
+  const {user, userArea, setUserArea, setOrder, baseURL} =
+    useContext(MainContext);
+
+  const onTablePress = item => {
+    const newOrder = {
+      empno: user.user_id,
+      table_id: item.id,
+      order_date: user.wdate,
+      order_time: new Date(),
+      order: [],
+    };
+    console.log({item, user, userArea, newOrder});
+
+    setOrder({...newOrder});
+    navigation.navigate('Menu', {screen: 'MenuScreen'});
   };
 
+  // useEffect(() => {
+  // }, [])
+
   useEffect(() => {
-    getTables();
-  }, []);
+    console.log('baseURL is', baseURL);
+    const unsubscribe = navigation.addListener('focus', e => {
+      // getArea();
+      getTables();
+      setOrder(blankOrder);
+      setSearchStr('');
+    });
+
+    // Return the function to unsubscribe from the event so it gets removed on unmount
+    return unsubscribe;
+  }, [navigation]);
+
+  // const getArea = async () => {
+  //   try {
+  //     const area = await AsyncStorageLib.getItem(storageVarNames.area);
+  //     const parsedArea = JSON.parse(area);
+  //     setUserArea(parsedArea);
+  //     setAreaId(parsedArea.AREA_ID);
+
+  //     // setArea(JSON.parse(area));
+  //   } catch (e) {}
+  // };
 
   const getTables = async () => {
     try {
-      const today = format(new Date(), 'dd-MMM-yy');
-      const url = `${GET_TABLES}?area_id=${areaId}&wdt='${today}'`;
-      // console.log('error url is', url);
+      // const today = format(new Date(), 'dd-MMM-yy');
+      let areaID = null;
+      if (!userArea) {
+        const area = await AsyncStorageLib.getItem(storageVarNames.area);
+        const parsedArea = JSON.parse(area);
+        areaID = parsedArea.AREA_ID;
+        setUserArea(parsedArea);
+      } else {
+        areaID = userArea.AREA_ID;
+      }
+
+      const wdt = user && user.wdate;
+
+      const url = `${baseURL}${GET_TABLES}?area_id=${areaID}&wdt='${wdt}'`;
+      console.log('error url is', url);
       const {data} = await axios.get(url);
+      // console.log('tables', data);
+      // const t = {...data[0], status: 'BOOKED'};
+      // data[0] = {...t};
       setState(data);
+      setStateBkup(data);
     } catch (e) {
       // const url = `write_logs.php`;
       // console.log('url is---', url);
@@ -48,9 +114,35 @@ const TableScreen = () => {
     }
   };
 
+  const searchTables = val => {
+    const newState = stateBkup.filter(t => {
+      return t.name.toLowerCase().indexOf(val.toLowerCase()) >= 0;
+    });
+    setSearchStr(val);
+    setState([...newState]);
+  };
 
   return (
     <SafeAreaView style={styles.body}>
+      <View style={styles.row1}>
+        <Text style={styles.memberLabel}>Filter : </Text>
+        <TextInput
+          placeholder="SEARCH TABLE NUMBER"
+          placeholderTextColor="#BBB"
+          style={{...styles.textInput, width: '70%'}}
+          autoCapitalize="words"
+          onChangeText={searchTables}
+          value={searchStr}
+          // onChange={onInputChange}
+        />
+        <TouchableOpacity
+          style={{...styles.button, width: 50}}
+          // onPress={getData}
+        >
+          {/* <Text style={{...styles.text, letterSpacing: 1}}>REFRESH</Text> */}
+          <FontAwesome name="search" size={25} style={{color: '#fff'}} />
+        </TouchableOpacity>
+      </View>
       <FlatList
         // key={this.state.horizontal ? 'h' : 'v'}
         numColumns={2}
@@ -62,15 +154,16 @@ const TableScreen = () => {
           <RefreshControl refreshing={refreshing} onRefresh={getTables} />
         }
         renderItem={({item}) => {
-          // console.log('item...', item);
+          const isVacant = item.status === 'VACANT';
+          const bgColor = isVacant ? SUCCESS_COLOR : ERR_CLR;
           return (
             <TouchableOpacity
               style={styles.gridItem}
               onPress={e => {
-                onPress(e, item);
+                onTablePress(item);
               }}>
-              <View style={styles.item}>
-                <MaterialIcons
+              <View style={{...styles.item, backgroundColor: bgColor}}>
+                {/* <MaterialIcons
                   name="table-chair"
                   size={50}
                   style={{
@@ -78,7 +171,16 @@ const TableScreen = () => {
                       item.status === 'BOOKED' ? ERR_CLR : MAIN_COLOR,
                   }}
                   color="#fff"
-                />
+                /> */}
+                {isVacant ? (
+                  <Image
+                    source={require(`../../../assets/images/table_green.jpg`)}
+                  />
+                ) : (
+                  <Image
+                    source={require(`../../../assets/images/table_red.jpg`)}
+                  />
+                )}
               </View>
               <View style={styles.itemTxt}>
                 <Text style={styles.text}>{item.name}</Text>
@@ -101,12 +203,11 @@ const styles = StyleSheet.create({
   },
   item: {
     width: '100%',
-    height: 120,
+    height: 130,
     // marginTop: 10,
     // flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#4ae1fa',
   },
   itemTxt: {
     width: '100%',
@@ -115,7 +216,7 @@ const styles = StyleSheet.create({
     // flexDirection: 'row',
     // justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#4ffed0',
+    // backgroundColor: '#4ffed0',
   },
   text: {
     fontSize: 20,
@@ -127,15 +228,43 @@ const styles = StyleSheet.create({
     height: 150,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'orange',
   },
   button: {
-    backgroundColor: '#ADD',
-    height: 42,
-    width: 150,
+    backgroundColor: MAIN_COLOR,
+    height: 45,
+    // width: 150,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 8,
+    // borderRadius: 8,
+    width: '25%',
+  },
+  row1: {
+    marginTop: 20,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 10,
+    paddingHorizontal: 5,
+  },
+  textInput: {
+    // marginTop: 10,
+    // flex: 1,
+    marginTop: -2,
+    paddingLeft: 10,
+    color: '#05375a',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    // borderBottomColor: 'rgba(0,0,0,.7)',
+    // borderBottomWidth: 1,
+    height: 45,
+    // width: '60%',
+    fontSize: 16,
+  },
+  memberLabel: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    alignItems: 'flex-start',
   },
 });
 

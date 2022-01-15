@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-import axios from '../../../constants/axiosClient';
 import {MAIN_COLOR, SUCCESS_COLOR} from '../../../constants/colors';
 import VerifyMember from './VerifyMember';
 import DismissKeyboard from '../../../components/DismissKeyboard';
@@ -35,37 +34,27 @@ const FlatMenuScreen = ({navigation}) => {
   const [stateBkup, setStateBkup] = useState([]);
   const [items, setItems] = useState([]);
   const [classes, setClasses] = useState([]);
+  const [searchStr, setSearchStr] = useState('');
+
   const {order, state, setOrder} = useContext(MainContext);
   const {colors} = useTheme();
 
-  const filterRef = useRef(null);
-  const memberRef = useRef(null);
-
   useEffect(() => {
+    setSearchStr('');
     getData();
   }, []);
 
   useEffect(() => {
-    // console.log('ran on screen change')
     const unsubscribe = navigation.addListener('focus', e => {
-      // The screen is focused
-      // Call any action
-      filterRef.current.clear();
-      // setData(stateBkup);
+      setSearchStr('');
       getData();
-      console.log('screen change triggered', e);
     });
 
-    // Return the function to unsubscribe from the event so it gets removed on unmount
     return unsubscribe;
   }, [navigation]);
 
   const getData = () => {
     try {
-      console.log('getting data....');
-
-      // const {data} = await axios.get(GET_ITEMS);
-
       const clses = state.classes;
 
       const newState = clses.map(cls => {
@@ -89,7 +78,52 @@ const FlatMenuScreen = ({navigation}) => {
     console.log(value);
   };
 
+  const onChkBoxPress = item => {
+    const orders = order.order;
+    const isOrdered = orders.find(({ITEM_ID}) => ITEM_ID === item.ITEM_ID);
+
+    if (!isOrdered) return;
+
+    const orderIdx = orders.findIndex(({ITEM_ID}) => ITEM_ID === item.ITEM_ID);
+
+    orders[orderIdx] = {...isOrdered, checked: !isOrdered.checked};
+    setOrder({...order, order: orders});
+
+    // set items checked to true
+    // const idx = selectedItems.findIndex(
+    //   ({ITEM_ID}) => ITEM_ID === item.ITEM_ID,
+    // );
+    // // console.log({idx, item});
+    // const items = [...selectedItems];
+    // items[idx] = {...item, checked: !item.checked};
+    // setSelectedItems([...items]);
+  };
+
+  const onQtyChange = (value, item) => {
+    const ord = order.order;
+    const existingOrder = ord.find(({ITEM_ID}) => item.ITEM_ID === ITEM_ID);
+    const idx = ord.findIndex(({ITEM_ID}) => item.ITEM_ID === ITEM_ID);
+    console.log('here', {value, item});
+    // return;
+    if (!value || value === '0') {
+      if (idx !== -1) {
+        ord.splice(idx, 1);
+      }
+      console.log();
+      setOrder({...order, order: ord});
+      return;
+    }
+
+    if (existingOrder) {
+      ord[idx] = {...existingOrder, qty: value};
+    } else {
+      ord.push({...item, qty: value});
+    }
+    setOrder({...order, order: ord});
+  };
+
   const search = val => {
+    setSearchStr(val);
     if (val) {
       const filteredItems = items.filter(item => {
         return item.ITEM_NAME.toLowerCase().indexOf(val.toLowerCase()) >= 0;
@@ -114,7 +148,7 @@ const FlatMenuScreen = ({navigation}) => {
         <View
           style={{
             ...styles.header1,
-            width: '12%',
+            width: '10%',
             // backgroundColor: 'wheat',
           }}>
           <Text
@@ -130,7 +164,7 @@ const FlatMenuScreen = ({navigation}) => {
         <View
           style={{
             ...styles.header1,
-            width: '50%',
+            width: '60%',
             // backgroundColor: 'purple',
           }}>
           <Text
@@ -147,7 +181,7 @@ const FlatMenuScreen = ({navigation}) => {
         <View
           style={{
             ...styles.header1,
-            width: '20%',
+            width: '15%',
             // backgroundColor: 'wheat',
           }}>
           <Text
@@ -160,7 +194,7 @@ const FlatMenuScreen = ({navigation}) => {
             Item ID
           </Text>
         </View>
-        <View style={{...styles.header1, width: '20%'}}>
+        <View style={{...styles.header1, width: '15%'}}>
           <Text
             style={{
               fontSize: 18,
@@ -177,32 +211,44 @@ const FlatMenuScreen = ({navigation}) => {
 
   const renderItems = ({item, index}) => {
     const bgColor = index % 2 === 0 ? '#fff' : '#f2f2f2';
+    const orderedItem = order.order.find(it => item.ITEM_ID === it.ITEM_ID);
+    let isChecked = (orderedItem && orderedItem.checked) || item.checked;
     return (
-      <View style={{flexDirection: 'row', backgroundColor: bgColor}}>
-        <View style={{...styles.menuBody, width: '12%'}}>
+      <View
+        style={{
+          flexDirection: 'row',
+          backgroundColor: bgColor,
+          paddingBottom: 10,
+        }}>
+        <View style={{...styles.menuBody, width: '10%'}}>
           {/* <Text style={styles.headerTxt}>Add</Text> */}
           <CheckBox
             center
-            checked={false}
-            onPress={() => {}}
+            checked={isChecked}
+            onPress={() => {
+              onChkBoxPress(item);
+            }}
             checkedColor={MAIN_COLOR}
           />
         </View>
-        <View style={{...styles.menuBody, width: '50%'}}>
+        <View style={{...styles.menuBody, width: '60%'}}>
           <Text style={styles.headerTxt}>{item.ITEM_NAME}</Text>
         </View>
-        <View style={{...styles.menuBody, alignItems: 'center', width: '20%'}}>
+        <View style={{...styles.menuBody, alignItems: 'center', width: '15%'}}>
           <Text style={styles.headerTxt}>{item.ITEM_ID}</Text>
         </View>
-        <View style={{...styles.menuBody, alignItems: 'center', width: '15%'}}>
+        <View style={{...styles.menuBody, alignItems: 'center', width: '13%'}}>
           {/* <Text style={styles.headerTxt}>Qty</Text> */}
           <TextInput
-            ref={filterRef}
             style={{...styles.textInput, color: colors.text, width: '100%'}}
             autoCapitalize="words"
             keyboardType="numeric"
-            onChangeText={() => {}}
+            onChangeText={value => {
+              // console.log('value is', value);
+              onQtyChange(value, item);
+            }}
             // onChange={onInputChange}
+            value={(orderedItem && orderedItem.qty) || ''}
           />
         </View>
       </View>
@@ -228,12 +274,9 @@ const FlatMenuScreen = ({navigation}) => {
   return (
     <DismissKeyboard>
       <View style={styles.body}>
-        {/* <VerifyMember onPress={verifyMemberonPress} ref={memberRef} /> */}
-
         <View style={styles.row}>
           <Text style={styles.memberLabel}>Member ID : </Text>
           <TextInput
-            ref={memberRef}
             placeholder="i.e R-123"
             placeholderTextColor="#BBB"
             style={{...styles.textInput, color: colors.text}}
@@ -248,12 +291,12 @@ const FlatMenuScreen = ({navigation}) => {
         <View style={styles.row1}>
           <Text style={styles.memberLabel}>Filter : </Text>
           <TextInput
-            ref={filterRef}
             placeholder="ITEM NAME HERE..."
             placeholderTextColor="#BBB"
             style={{...styles.textInput, color: colors.text, width: '70%'}}
             autoCapitalize="words"
             onChangeText={search}
+            value={searchStr}
             // onChange={onInputChange}
           />
           <TouchableOpacity
@@ -338,6 +381,8 @@ const styles = StyleSheet.create({
     color: '#05375a',
     borderWidth: 1,
     borderColor: '#ccc',
+    // borderBottomColor: 'rgba(0,0,0,.7)',
+    // borderBottomWidth: 1,
     height: 45,
     width: '45%',
     fontSize: 16,

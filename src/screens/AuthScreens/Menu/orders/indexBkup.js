@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {CheckBox} from 'react-native-elements';
 import {useTheme} from 'react-native-paper';
+import axios from 'axios'
 import {
   View,
   Text,
@@ -10,7 +11,6 @@ import {
   TextInput,
 } from 'react-native';
 
-import axios from '../../../constants/axiosClient';
 import {MAIN_COLOR, SUCCESS_COLOR} from '../../../constants/colors';
 import ClassesMenu from './ClassesMenu';
 import VerifyMember from './VerifyMember';

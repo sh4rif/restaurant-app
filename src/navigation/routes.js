@@ -18,12 +18,14 @@ import {blankOrder, storageVarNames} from '../constants';
 const Drawer = createDrawerNavigator();
 
 function Routes() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userArea, setUserArea] = useState(null);
   const [user, setUser] = useState(null);
   const [state, setState] = useState({classes: [], items: []});
   const [order, setOrder] = useState({...blankOrder});
   const [orders, setOrders] = useState([]);
+  const [baseURL, setBaseURL] = useState(null);
+  const [member, setMember] = useState(null);
 
   useEffect(() => {
     getArea();
@@ -33,19 +35,27 @@ function Routes() {
     try {
       const area = await AsyncStorageLib.getItem(storageVarNames.area);
       setUserArea(JSON.parse(area));
-      console.log('Routes useEffect loaded', area);
-      console.log({myarea: JSON.parse(area)});
+      // console.log('Routes useEffect loaded', area);
+      // console.log({myarea: JSON.parse(area)});
     } catch (e) {}
   };
 
   const signIn = payload => {
     // console.log({username, password});
     // return true;
+    console.log('signing in', payload);
     setUser({...payload});
   };
   const signOut = () => {
     // clear localstore
     setUser(null);
+    setIsLoggedIn(null);
+    setUserArea(null);
+    setState({classes: [], items: []});
+    setOrder({...blankOrder});
+    setOrders([]);
+    setBaseURL(null);
+    setMember(null);
   };
 
   return (
@@ -64,6 +74,10 @@ function Routes() {
         setOrder,
         orders,
         setOrders,
+        baseURL,
+        setBaseURL,
+        member,
+        setMember,
       }}>
       <Drawer.Navigator
         // initialRouteName="Settings"

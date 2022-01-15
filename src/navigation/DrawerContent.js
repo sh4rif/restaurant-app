@@ -17,7 +17,7 @@ import {MainContext} from '../components/context';
 function CustomDrawerContent(props) {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
 
-    const {signOut} = React.useContext(MainContext);
+  const {signOut, user} = React.useContext(MainContext);
 
   const toggleTheme = () => {
     setIsDarkTheme(!isDarkTheme);
@@ -36,21 +36,22 @@ function CustomDrawerContent(props) {
                 }}
               />
               <View style={{flexDirection: 'column', marginLeft: 15}}>
-                <Title style={styles.title}>Usman Sharif</Title>
-                <Caption style={styles.caption}>KC-069</Caption>
+                <Title style={styles.title}>{user && user.full_name}</Title>
+                <Caption style={styles.caption}>{user && user.empno}</Caption>
               </View>
             </View>
             <View style={styles.row}>
               <View style={styles.section}>
                 <Caption style={styles.caption}>Login@ </Caption>
                 <Paragraph style={{...styles.paragraph, ...styles.caption}}>
-                  15:20
+                  {/* 15:20 */}
+                  {user && user.login_time}
                 </Paragraph>
               </View>
               <View style={styles.section}>
                 <Caption style={styles.caption}>Date</Caption>
                 <Paragraph style={{...styles.paragraph, ...styles.caption}}>
-                  : 27/12/2021
+                  : {user && user.wdate}
                 </Paragraph>
               </View>
             </View>
@@ -73,6 +74,7 @@ function CustomDrawerContent(props) {
               onPress={() => {
                 navigation.navigate('Tables');
               }}
+              
             />
             <DrawerItem
               label="Orders"
@@ -83,7 +85,7 @@ function CustomDrawerContent(props) {
                 navigation.navigate('Orders');
               }}
             />
-            <DrawerItem
+            {/* <DrawerItem
               label="Menu"
               icon={({color, size}) => (
                 <Icon name="bookmark-outline" color={color} size={size} />
@@ -91,7 +93,7 @@ function CustomDrawerContent(props) {
               onPress={() => {
                 navigation.navigate('Menu', {screen: 'MenuScreen'});
               }}
-            />
+            /> */}
             <DrawerItem
               label="Settings"
               icon={({color, size}) => (

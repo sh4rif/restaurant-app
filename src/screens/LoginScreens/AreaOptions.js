@@ -2,6 +2,7 @@ import React, {useState, useEffect, useContext} from 'react';
 import FontAwesome from 'react-native-vector-icons/FontAwesome5';
 import * as Animatable from 'react-native-animatable';
 import AsyncStorageLib from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import {
   View,
   Text,
@@ -13,7 +14,6 @@ import {
   Alert,
 } from 'react-native';
 
-import axiosClient from '../../constants/axiosClient';
 import {BUTTON_GRADIENT, MAIN_COLOR} from '../../constants/colors';
 import LinearGradient from 'react-native-linear-gradient';
 import {GET_AREAS, storageVarNames} from '../../constants';
@@ -23,8 +23,15 @@ const AreaOptionsScreen = ({navigation}) => {
   const [state, setState] = useState([]);
   const [selectedArea, setSelectedArea] = useState(null);
 
-  const {userArea, setUserArea, user, isLoggedIn, setIsLoggedIn} =
-    useContext(MainContext);
+  const {
+    userArea,
+    setUserArea,
+    user,
+    isLoggedIn,
+    setIsLoggedIn,
+    baseURL,
+    setBaseURL,
+  } = useContext(MainContext);
 
   useEffect(() => {
     getAreas();
@@ -33,6 +40,7 @@ const AreaOptionsScreen = ({navigation}) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', e => {
+      getAreas();
       getSelectedArea();
     });
 
@@ -41,7 +49,21 @@ const AreaOptionsScreen = ({navigation}) => {
 
   const getAreas = async () => {
     try {
-      const {data} = await axiosClient.get(GET_AREAS);
+      let url = baseURL;
+      if (!baseURL) {
+        
+        const base_url = await AsyncStorageLib.getItem(storageVarNames.url);
+        console.log('baseURL is base_url', base_url);
+        if (!base_url) {
+          navigation.navigate('URLOptionsScreen');
+          return;
+        }
+        setBaseURL(base_url);
+        url = base_url;
+      }
+      console.log('url -- 3', url, `${url}${GET_AREAS}`);
+      const {data} = await axios.get(`${url}${GET_AREAS}`);
+
       console.log('areas', data);
       setState([...data]);
     } catch (e) {

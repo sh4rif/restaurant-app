@@ -1,5 +1,4 @@
-import React, {useState, useEffect} from 'react';
-import axios from '../../../constants/axiosClient';
+import React, {useState, useEffect, useContext} from 'react';
 import _ from 'lodash';
 import {
   View,
@@ -17,7 +16,9 @@ import {ERR_CLR, MAIN_COLOR} from '../../../constants/colors';
 import ClassesMenu from './ClassesMenu';
 import VerifyMember from './VerifyMember';
 import DismissKeyboard from '../../../components/DismissKeyboard';
-import { GET_ITEMS } from '../../../constants';
+import {GET_ITEMS} from '../../../constants';
+import axios from 'axios';
+import {MainContext} from '../../../components/context';
 
 const FlatMenuScreen = ({navigation}) => {
   const [state, setState] = useState([]);
@@ -29,11 +30,13 @@ const FlatMenuScreen = ({navigation}) => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedClassId, setSelectedClassId] = useState(null);
 
+  const {baseURL} = useContext(MainContext);
+
   const {colors} = useTheme();
 
-  useEffect(() => {
-    getData();
-  }, []);
+  // useEffect(() => {
+  //   getData();
+  // }, []);
 
   const getSelectedIClassItem = (items, class_id) => {
     return items.filter(item => item.CLS_ID === class_id);
@@ -41,7 +44,7 @@ const FlatMenuScreen = ({navigation}) => {
 
   const getData = async () => {
     try {
-      const {data} = await axios.get(GET_ITEMS);
+      const {data} = await axios.get(`${baseURL}${GET_ITEMS}`);
 
       const clses = data.classes;
 

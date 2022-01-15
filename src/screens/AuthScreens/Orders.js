@@ -4,9 +4,9 @@ import ButtonComponent from '../../components/button';
 // import {TABLE_STACK_SCREEN} from '../../navigation/constants';
 
 const OrderScreen = ({navigation}) => {
-  //   const onPressHandler = () => {
-  //     navigation.navigate(TABLE_STACK_SCREEN);
-  //   };
+    const onPressHandler = () => {
+      navigation.navigate(TABLE_STACK_SCREEN);
+    };
   return (
     <View style={styles.body}>
       <Text>Order Screen here</Text>

@@ -1,11 +1,11 @@
 import React, {useState, useContext, useRef, useEffect} from 'react';
-// import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome5';
 import * as Animatable from 'react-native-animatable';
 import {useTheme} from 'react-native-paper';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorageLib from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import {
   View,
   Text,
@@ -22,18 +22,25 @@ import DismissKeyboard from '../../components/DismissKeyboard';
 import {MainContext} from '../../components/context';
 import {BUTTON_GRADIENT, ERR_CLR, MAIN_COLOR} from '../../constants/colors';
 import {LOGIN, storageVarNames} from '../../constants';
-import axios from 'axios';
 
 const LoginScreen = ({navigation}) => {
   const [showPwd, setShowPwd] = useState(true);
   const [checkTextInputChange, setCheckTextInputChange] = useState(false);
-  const [loginURL, setLoginURL] = useState(null);
+  // const [baseURL, setBaseURL] = useState(null);
   const [state, setState] = useState({
     tag: 'login',
     username: '',
     password: '',
   });
-  const {signIn, userArea, isLoggedIn, setIsLoggedIn} = useContext(MainContext);
+  const {
+    signIn,
+    userArea,
+    isLoggedIn,
+    setIsLoggedIn,
+    setUserArea,
+    baseURL,
+    setBaseURL,
+  } = useContext(MainContext);
   const {colors} = useTheme();
 
   const passwordRef = useRef();
@@ -47,11 +54,10 @@ const LoginScreen = ({navigation}) => {
     }
   };
 
-  // useEffect(() => {
-  //   getLoginURL();
-  // }, []);
-
   useEffect(() => {
+    // AsyncStorageLib.clear();
+    // AsyncStorageLib.removeItem(storageVarNames.area);
+    // AsyncStorageLib.removeItem(storageVarNames.url);
     const unsubscribe = navigation.addListener('focus', e => {
       getLoginURL();
     });
@@ -59,42 +65,43 @@ const LoginScreen = ({navigation}) => {
     return unsubscribe;
   }, [navigation]);
 
+  const openOptions = () => {
+    navigation.navigate('OptionsScreen', {screen: 'AreaOptionsScreen'});
+  };
+
   const getLoginURL = async () => {
     try {
       const url = await AsyncStorageLib.getItem(storageVarNames.url);
+      console.log('login ', {url});
       if (!url) {
         navigation.navigate('OptionsScreen', {screen: 'URLOptionsScreen'});
         return;
       }
-      setLoginURL(url);
+      setBaseURL(url);
     } catch (e) {
       console.log('error occured while fetching url from localstorage', e);
     }
   };
 
   const loginHandler = async () => {
-    // console.log('userArea', userArea);
-    console.log({loginURL, userArea});
-    // await AsyncStorageLib.removeItem(storageVarNames.area);
-    // await AsyncStorageLib.clear()
-    // return;
     try {
-      console.log({url: `${loginURL}${LOGIN}`});
-      const {data} = await axios.post(`${loginURL}${LOGIN}`, state);
-      console.log(data);
-
+      console.log({url: `${baseURL}${LOGIN}`});
+      const {data} = await axios.post(`${baseURL}${LOGIN}`, state);
+      console.log('data is', data);
       if (data.error !== 0) {
         Alert.alert('ERROR!!', data.error_msg);
         return;
       }
       signIn(data);
-      if (userArea) {
-        console.log('set isLoggedIn, setIsLoggedIn to true')
+      const area = await AsyncStorageLib.getItem(storageVarNames.area);
+      if (area) {
+        setUserArea(JSON.parse(area));
+        setIsLoggedIn(true);
+        // console.log('area is set', area);
       } else {
+        // console.log('area is not set', area);
         navigation.navigate('OptionsScreen', {screen: 'AreaOptionsScreen'});
       }
-
-      // navigation.navigate('HomeScreenStack', {screen: 'Home'});
     } catch (e) {
       console.log('Error Occured 1 -- ', e);
     }
@@ -145,16 +152,10 @@ const LoginScreen = ({navigation}) => {
               secureTextEntry={showPwd}
               placeholderTextColor="#666666"
               style={{...styles.textInput, color: colors.text}}
-              onChangeText={val => {
-                // console.log('val--', val);
-                onChangeHandler('password', val);
-              }}
+              onChangeText={val => onChangeHandler('password', val)}
               autoCapitalize="none"
             />
-            <TouchableOpacity
-              onPress={() => {
-                setShowPwd(!showPwd);
-              }}>
+            <TouchableOpacity onPress={() => setShowPwd(!showPwd)}>
               <Feather
                 name={showPwd ? 'eye-off' : 'eye'}
                 color="gray"
@@ -173,17 +174,8 @@ const LoginScreen = ({navigation}) => {
               </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => {
-                navigation.navigate('OptionsScreen', {
-                  screen: 'URLOptionsScreen',
-                });
-              }}
-              style={{
-                ...styles.signIn,
-                borderColor: MAIN_COLOR,
-                borderWidth: 1,
-                marginTop: 15,
-              }}>
+              onPress={openOptions}
+              style={{...styles.signIn, ...styles.optionBtn}}>
               <Text style={{...styles.textSign, color: MAIN_COLOR}}>
                 <FontAwesome name="user-cog" size={25} /> Options
               </Text>
@@ -263,6 +255,11 @@ const styles = StyleSheet.create({
   textSign: {
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  optionBtn: {
+    borderColor: MAIN_COLOR,
+    borderWidth: 1,
+    marginTop: 15,
   },
 });
 
