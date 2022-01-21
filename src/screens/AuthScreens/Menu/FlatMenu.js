@@ -9,6 +9,7 @@ import {
   TextInput,
   SectionList,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 
 import {MAIN_COLOR, SUCCESS_COLOR} from '../../../constants/colors';
@@ -88,28 +89,17 @@ const FlatMenuScreen = ({navigation}) => {
 
     orders[orderIdx] = {...isOrdered, checked: !isOrdered.checked};
     setOrder({...order, order: orders});
-
-    // set items checked to true
-    // const idx = selectedItems.findIndex(
-    //   ({ITEM_ID}) => ITEM_ID === item.ITEM_ID,
-    // );
-    // // console.log({idx, item});
-    // const items = [...selectedItems];
-    // items[idx] = {...item, checked: !item.checked};
-    // setSelectedItems([...items]);
   };
 
   const onQtyChange = (value, item) => {
     const ord = order.order;
     const existingOrder = ord.find(({ITEM_ID}) => item.ITEM_ID === ITEM_ID);
     const idx = ord.findIndex(({ITEM_ID}) => item.ITEM_ID === ITEM_ID);
-    console.log('here', {value, item});
-    // return;
+
     if (!value || value === '0') {
       if (idx !== -1) {
         ord.splice(idx, 1);
       }
-      console.log();
       setOrder({...order, order: ord});
       return;
     }
@@ -126,7 +116,10 @@ const FlatMenuScreen = ({navigation}) => {
     setSearchStr(val);
     if (val) {
       const filteredItems = items.filter(item => {
-        return item.ITEM_NAME.toLowerCase().indexOf(val.toLowerCase()) >= 0;
+        return (
+          item.ITEM_NAME.toLowerCase().indexOf(val.toLowerCase()) >= 0 ||
+          item.ITEM_ID.indexOf(val.trim()) >= 0
+        );
       });
 
       const newState = classes
@@ -244,7 +237,6 @@ const FlatMenuScreen = ({navigation}) => {
             autoCapitalize="words"
             keyboardType="numeric"
             onChangeText={value => {
-              // console.log('value is', value);
               onQtyChange(value, item);
             }}
             // onChange={onInputChange}
@@ -263,63 +255,58 @@ const FlatMenuScreen = ({navigation}) => {
     );
   };
 
-  // const onInputChange = ({nativeEvent}) => {
-  //   const {text} = nativeEvent
-  //   console.log('nativeeVENT', nativeEvent);
-  //   debouncedFunc(text)
-  // }
-
-  // const debouncedFunc = debounce(search, 200)
-
   return (
-    <DismissKeyboard>
-      <View style={styles.body}>
-        <View style={styles.row}>
-          <Text style={styles.memberLabel}>Member ID : </Text>
-          <TextInput
-            placeholder="i.e R-123"
-            placeholderTextColor="#BBB"
-            style={{...styles.textInput, color: colors.text}}
-            autoCapitalize="characters"
-            onChangeText={() => {}}
-          />
-          {/* <TextField placeholder="i.e R-123"  /> */}
-          <TouchableOpacity style={styles.button} onPress={() => {}}>
-            <Text style={{...styles.text}}>VERIFY</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.row1}>
-          <Text style={styles.memberLabel}>Filter : </Text>
-          <TextInput
-            placeholder="ITEM NAME HERE..."
-            placeholderTextColor="#BBB"
-            style={{...styles.textInput, color: colors.text, width: '70%'}}
-            autoCapitalize="words"
-            onChangeText={search}
-            value={searchStr}
-            // onChange={onInputChange}
-          />
-          <TouchableOpacity
-            style={{...styles.button, width: 50}}
-            onPress={getData}>
-            {/* <Text style={{...styles.text, letterSpacing: 1}}>REFRESH</Text> */}
-            <FontAwesome name="refresh" size={25} style={{color: '#fff'}} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.menuWrapper}>
-          <View>
-            <ItemHeaders />
-            <SectionList
-              sections={data}
-              keyExtractor={(item, index) => index.toString()}
-              renderSectionHeader={renderHeader}
-              renderItem={renderItems}
+    <>
+      <StatusBar backgroundColor={MAIN_COLOR} barStyle="light-content" />
+      <DismissKeyboard>
+        <View style={styles.body}>
+        <VerifyMember member_id={order.member_id} />
+          {/* <View style={styles.row}>
+            <Text style={styles.memberLabel}>Member ID : </Text>
+            <TextInput
+              placeholder="i.e R-123"
+              placeholderTextColor="#BBB"
+              style={{...styles.textInput, color: colors.text}}
+              autoCapitalize="characters"
+              onChangeText={() => {}}
             />
+            <TouchableOpacity style={styles.button} onPress={() => {}}>
+              <Text style={{...styles.text}}>VERIFY</Text>
+            </TouchableOpacity>
+          </View> */}
+          <View style={styles.row1}>
+            <Text style={styles.memberLabel}>Filter : </Text>
+            <TextInput
+              placeholder="ITEM NAME HERE..."
+              placeholderTextColor="#BBB"
+              style={{...styles.textInput, color: colors.text, width: '70%'}}
+              autoCapitalize="words"
+              onChangeText={search}
+              value={searchStr}
+              // onChange={onInputChange}
+            />
+            <TouchableOpacity
+              style={{...styles.button, width: 50}}
+              onPress={getData}>
+              {/* <Text style={{...styles.text, letterSpacing: 1}}>REFRESH</Text> */}
+              <FontAwesome name="refresh" size={25} style={{color: '#fff'}} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.menuWrapper}>
+            <View>
+              <ItemHeaders />
+              <SectionList
+                sections={data}
+                keyExtractor={(item, index) => index.toString()}
+                renderSectionHeader={renderHeader}
+                renderItem={renderItems}
+              />
+            </View>
           </View>
         </View>
-      </View>
-    </DismissKeyboard>
+      </DismissKeyboard>
+    </>
   );
 };
 

@@ -12,9 +12,11 @@ import FlatMenuScreen from '../screens/AuthScreens/Menu/FlatMenu';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {MAIN_COLOR} from '../constants/colors';
 import ViewOrderScreen from '../screens/AuthScreens/order/ViewOrder';
+import ViewBookedTableOrderScr from '../screens/AuthScreens/order/ViewBookedTableOrder';
 
 const MenuStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+const MenuStackTwo = createStackNavigator();
 
 export const TableStackScreens = ({navigation}) => {
   return (
@@ -106,5 +108,17 @@ export const MenuTabScreen = ({navigation}) => {
         }}
       />
     </Tab.Navigator>
+  );
+};
+
+export const BookedTableTabScreen = ({navigation}) => {
+  return (
+    <MenuStackTwo.Navigator activeColor="#fff">
+      <MenuStackTwo.Screen
+        name="ViewBookedTableOrderScr"
+        component={ViewBookedTableOrderScr}
+        options={{headerShown: false}}
+      />
+    </MenuStackTwo.Navigator>
   );
 };

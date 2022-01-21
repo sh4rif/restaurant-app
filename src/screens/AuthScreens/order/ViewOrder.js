@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useContext} from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {CheckBox} from 'react-native-elements';
+import axios from 'axios';
 import {
   View,
   Text,
@@ -9,14 +10,14 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
+  StatusBar,
 } from 'react-native';
 
 import {MainContext} from '../../../components/context';
 import {ERR_CLR, MAIN_COLOR, SUCCESS_COLOR} from '../../../constants/colors';
 import DismissKeyboard from '../../../components/DismissKeyboard';
 import {formatNumber} from '../../../utils/functions';
-import {PLACE_ORDER} from '../../../constants';
-import axios from 'axios';
+import {PLACE_ORDER, UPDATE_ORDER} from '../../../constants';
 
 const ViewOrderScreen = ({navigation}) => {
   const [showComments, setShowComments] = useState(false);
@@ -26,7 +27,8 @@ const ViewOrderScreen = ({navigation}) => {
     tax: 0,
     sum: 0,
   });
-  const {order, setOrder, baseURL, user, userArea} = useContext(MainContext);
+  const {order, setOrder, baseURL, user, userArea, selectedTable} =
+    useContext(MainContext);
 
   useEffect(() => {
     calculateTotal(order.order);
@@ -46,11 +48,17 @@ const ViewOrderScreen = ({navigation}) => {
       ...order,
       qot: user.QOT,
       area_id: userArea.AREA_ID,
+      order_id: selectedTable.order_no,
       orders: orderItems,
     };
     delete orderToSumbit.order;
     delete orderToSumbit.order_time;
-    const url = `${baseURL}${PLACE_ORDER}`;
+    let url = `${baseURL}${PLACE_ORDER}`;
+    if(selectedTable.order_no){
+      url = `${baseURL}${UPDATE_ORDER}`;
+    }
+    console.log({orderToSumbit, selectedTable});
+    // return;
     try {
       const {data} = await axios.post(url, orderToSumbit);
       console.log(data);
@@ -58,13 +66,16 @@ const ViewOrderScreen = ({navigation}) => {
         Alert.alert('Order', 'Order failed!, please try again');
         return;
       }
-      
+
       Alert.alert('Order', 'Order Placed Successfully!');
       setOrder({
+        id: '',
         empno: '',
+        qot: '',
         table_id: '',
+        order_id: '',
+        order_no: '',
         order_date: '',
-        order_time: '',
         order: [],
       });
       navigation.navigate('Home');
@@ -142,16 +153,16 @@ const ViewOrderScreen = ({navigation}) => {
         <View style={{...styles.header1, width: '10%'}}>
           <Text style={{...styles.headerTxt}}>Sr.</Text>
         </View>
-        <View style={{...styles.header1, width: '40%'}}>
-          <Text style={{...styles.headerTxt, letterSpacing: 2}}>Item Name</Text>
+        <View style={{...styles.header1, width: '50%'}}>
+          <Text style={{...styles.headerTxt}}>Item Name</Text>
         </View>
-        <View style={{...styles.header1, width: '20%'}}>
-          <Text style={styles.headerTxt}>Item ID</Text>
+        <View style={{...styles.header1, width: '15%'}}>
+          <Text style={{...styles.headerTxt}}>Item ID</Text>
         </View>
-        <View style={{...styles.header1, width: '18%'}}>
+        <View style={{...styles.header1, width: '15%'}}>
           <Text style={styles.headerTxt}>Qty</Text>
         </View>
-        <View style={{...styles.header1, width: '12%'}}></View>
+        <View style={{...styles.header1, width: '10%'}}></View>
       </View>
     );
   };
@@ -164,7 +175,7 @@ const ViewOrderScreen = ({navigation}) => {
           <View style={{...styles.menuBody, width: '5%'}}>
             <Text style={{...styles.bodyTxt}}>{index + 1}</Text>
           </View>
-          <View style={{...styles.menuBody, width: '50%'}}>
+          <View style={{...styles.menuBody, width: '55%'}}>
             <Text style={styles.bodyTxt}>{item.ITEM_NAME}</Text>
           </View>
           <View
@@ -172,7 +183,7 @@ const ViewOrderScreen = ({navigation}) => {
             <Text style={styles.bodyTxt}>{item.ITEM_ID}</Text>
           </View>
           <View
-            style={{...styles.menuBody, alignItems: 'center', width: '17%'}}>
+            style={{...styles.menuBody, alignItems: 'center', width: '15%'}}>
             <TextInput
               style={styles.textInput}
               autoCapitalize="words"
@@ -183,7 +194,7 @@ const ViewOrderScreen = ({navigation}) => {
             />
           </View>
           <TouchableOpacity
-            style={{...styles.deleteBtn, width: '12%'}}
+            style={{...styles.deleteBtn, width: '10%'}}
             onPress={() => deleteRow(index)}>
             <Icon name="ios-trash-bin" size={26} color={ERR_CLR} />
           </TouchableOpacity>
@@ -255,44 +266,70 @@ const ViewOrderScreen = ({navigation}) => {
   }
 
   return (
-    <DismissKeyboard>
-      <View style={styles.body}>
-        <View style={styles.menuWrapper}>
-          <View>
-            <View style={{marginBottom: 10, flexDirection: 'row'}}>
-              <View style={{width: '50%', flexDirection: 'row'}}>
-                <Text style={styles.member}>Member</Text>
-                <Text
-                  style={{
-                    ...styles.member,
-                    color: MAIN_COLOR,
-                    fontWeight: 'bold',
-                  }}>
-                  R-369
-                </Text>
+    <>
+      <StatusBar backgroundColor={MAIN_COLOR} barStyle="light-content" />
+      <DismissKeyboard>
+        <View style={styles.body}>
+          <View style={styles.menuWrapper}>
+            <View>
+              <View style={{marginBottom: -10, flexDirection: 'row'}}>
+                <View style={{width: '50%', flexDirection: 'row'}}>
+                  <Text style={styles.member}>Member</Text>
+                  <Text
+                    style={{
+                      ...styles.member,
+                      color: MAIN_COLOR,
+                      fontWeight: 'bold',
+                    }}>
+                    {order.member_id}
+                  </Text>
+                </View>
+                <View style={{flexDirection: 'row'}}>
+                  <Text style={styles.member}>
+                    {showComments ? 'Hide' : 'Show'} Comments
+                  </Text>
+                  <CheckBox
+                    checked={showComments}
+                    onPress={() => {
+                      setShowComments(!showComments);
+                    }}
+                    checkedColor={SUCCESS_COLOR}
+                  />
+                </View>
               </View>
-              <View style={{flexDirection: 'row'}}>
-                <Text style={styles.member}>
-                  {showComments ? 'Hide' : 'Show'} Comments
-                </Text>
-                <CheckBox
-                  checked={showComments}
-                  onPress={() => {
-                    setShowComments(!showComments);
-                  }}
-                  checkedColor={SUCCESS_COLOR}
-                />
+              <View style={{marginBottom: 5, flexDirection: 'row'}}>
+                <View style={{width: '50%', flexDirection: 'row'}}>
+                  <Text style={styles.member}>Area</Text>
+                  <Text
+                    style={{
+                      ...styles.member,
+                      color: MAIN_COLOR,
+                      fontWeight: 'bold',
+                    }}>
+                    {userArea.AREA_DESC}
+                  </Text>
+                </View>
+                <View style={{flexDirection: 'row'}}>
+                  <Text style={styles.member}>Table</Text>
+                  <Text
+                    style={{
+                      ...styles.member,
+                      color: ERR_CLR,
+                      fontWeight: 'bold',
+                    }}>
+                    {selectedTable && selectedTable.name}
+                  </Text>
+                </View>
               </View>
-            </View>
-            <ItemHeaders />
-            <FlatList
-              numColumns={1}
-              keyExtractor={(item, index) => item.ITEM_ID}
-              data={order.order.filter(o => o.checked)}
-              renderItem={renderItems}
-            />
-            {renderTotal()}
-            {/* <View style={{flexDirection: 'row'}}>
+              <ItemHeaders />
+              <FlatList
+                numColumns={1}
+                keyExtractor={(item, index) => item.ITEM_ID}
+                data={order.order.filter(o => o.checked)}
+                renderItem={renderItems}
+              />
+              {renderTotal()}
+              {/* <View style={{flexDirection: 'row'}}>
               <View style={{...styles.header1, ...styles.addItems}}>
                 <TouchableOpacity style={styles.deleteBtn} onPress={addMoreItems}>
                   <Text style={{...styles.headerTxt, letterSpacing: 1}}>
@@ -309,38 +346,39 @@ const ViewOrderScreen = ({navigation}) => {
                 </TouchableOpacity>
               </View>
             </View> */}
-          </View>
+            </View>
 
-          {/* <View>
+            {/* <View>
             <Text>Bottom area</Text>
           </View> */}
-        </View>
-        {/* <View style={styles.menuWrapper}>
+          </View>
+          {/* <View style={styles.menuWrapper}>
           <Text>Footer</Text>
         </View> */}
-        <View style={{flexDirection: 'row'}}>
-          <View style={{...styles.header1, ...styles.addItems}}>
-            <TouchableOpacity style={styles.deleteBtn} onPress={addMoreItems}>
-              <Text style={{...styles.headerTxt, letterSpacing: 1}}>
-                <Icon name="add-circle-outline" size={26} /> ADD ITEMS
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <View style={{flexDirection: 'row'}}>
+            <View style={{...styles.header1, ...styles.addItems}}>
+              <TouchableOpacity style={styles.deleteBtn} onPress={addMoreItems}>
+                <Text style={{...styles.headerTxt, letterSpacing: 1}}>
+                  <Icon name="add-circle-outline" size={26} /> ADD ITEMS
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-          <View style={{...styles.header1, width: '50%'}}>
-            <TouchableOpacity
-              style={styles.deleteBtn}
-              onPress={() => {
-                placeOrder(order.order);
-              }}>
-              <Text style={{...styles.headerTxt, letterSpacing: 1}}>
-                Place Order <Icon name="checkmark-done-outline" size={26} />
-              </Text>
-            </TouchableOpacity>
+            <View style={{...styles.header1, width: '50%'}}>
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={() => {
+                  placeOrder(order.order);
+                }}>
+                <Text style={{...styles.headerTxt, letterSpacing: 1}}>
+                  Place Order <Icon name="checkmark-done-outline" size={26} />
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </DismissKeyboard>
+      </DismissKeyboard>
+    </>
   );
 };
 
@@ -368,6 +406,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
     textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   bodyTxt: {fontWeight: '600', fontSize: 16},
   menuBody: {justifyContent: 'center', padding: 5},

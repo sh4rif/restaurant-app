@@ -1,9 +1,6 @@
 import React, {useState, useEffect, useContext} from 'react';
-import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {format} from 'date-fns';
 import axios from 'axios';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-
 import AsyncStorageLib from '@react-native-async-storage/async-storage';
 import {
   FlatList,
@@ -16,73 +13,89 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
+  Alert,
+  StatusBar,
 } from 'react-native';
+
 import {ERR_CLR, MAIN_COLOR, SUCCESS_COLOR} from '../../constants/colors';
-import {GET_TABLES, storageVarNames} from '../../constants';
+import {GET_ORDER, GET_TABLES, storageVarNames} from '../../constants';
 import {MainContext} from '../../components/context';
 
 const blankOrder = {
+  id: '',
   empno: '',
+  qot: '',
   table_id: '',
+  order_id: '',
+  order_no: '',
   order_date: '',
-  order_time: '',
+  member_id: 'ABC-3',
   order: [],
 };
+
 const TableScreen = ({navigation}) => {
   const [refreshing, setRefreshing] = useState(false);
-  // const [wdate, setWdate] = useState('12-DEC-21');
-  // const [areaId, setAreaId] = useState(null);
   const [state, setState] = useState([]);
   const [stateBkup, setStateBkup] = useState([]);
   const [searchStr, setSearchStr] = useState('');
+  const [data, setData] = useState(null);
 
-  const {user, userArea, setUserArea, setOrder, baseURL} =
-    useContext(MainContext);
+  const {
+    user,
+    userArea,
+    setUserArea,
+    setOrder,
+    baseURL,
+    setSelectedTable,
+    setBookedOrder,
+  } = useContext(MainContext);
 
-  const onTablePress = item => {
+  const onTablePress = async item => {
     const newOrder = {
       empno: user.user_id,
       table_id: item.id,
+      order_id: item.order_id || null,
       order_date: user.wdate,
       order_time: new Date(),
+      member_id: 'ABC-2',
       order: [],
     };
-    console.log({item, user, userArea, newOrder});
 
     setOrder({...newOrder});
-    navigation.navigate('Menu', {screen: 'MenuScreen'});
+
+    setSelectedTable(item);
+    if (item.status === 'VACANT') {
+      navigation.navigate('Menu', {screen: 'MenuScreen'});
+    } else {
+      const {id, order_no} = item;
+      const {user_id, wdate} = user;
+      const url = `${baseURL}${GET_ORDER}?order_no=${order_no}&emp_no=${user_id}&table_id=${id}&working_date='${wdate}'`;
+      try {
+        const {data} = await axios.get(url);
+        console.log({data, item});
+        setBookedOrder(data);
+        navigation.navigate('OrderDetail', {screen: 'ViewBookedTableOrderScr'});
+      } catch (e) {
+        setBookedOrder([]);
+      }
+      // console.log({url, data});
+    }
   };
 
-  // useEffect(() => {
-  // }, [])
-
   useEffect(() => {
-    console.log('baseURL is', baseURL);
     const unsubscribe = navigation.addListener('focus', e => {
-      // getArea();
       getTables();
       setOrder(blankOrder);
       setSearchStr('');
+      setSelectedTable(null);
     });
 
     // Return the function to unsubscribe from the event so it gets removed on unmount
     return unsubscribe;
   }, [navigation]);
 
-  // const getArea = async () => {
-  //   try {
-  //     const area = await AsyncStorageLib.getItem(storageVarNames.area);
-  //     const parsedArea = JSON.parse(area);
-  //     setUserArea(parsedArea);
-  //     setAreaId(parsedArea.AREA_ID);
-
-  //     // setArea(JSON.parse(area));
-  //   } catch (e) {}
-  // };
-
   const getTables = async () => {
     try {
-      // const today = format(new Date(), 'dd-MMM-yy');
       let areaID = null;
       if (!userArea) {
         const area = await AsyncStorageLib.getItem(storageVarNames.area);
@@ -94,22 +107,12 @@ const TableScreen = ({navigation}) => {
       }
 
       const wdt = user && user.wdate;
-
-      const url = `${baseURL}${GET_TABLES}?area_id=${areaID}&wdt='${wdt}'`;
-      console.log('error url is', url);
+      const url = `${baseURL}${GET_TABLES}?area_id=${areaID}&wdt='${wdt}'&empno=${user.user_id}`;
       const {data} = await axios.get(url);
-      // console.log('tables', data);
-      // const t = {...data[0], status: 'BOOKED'};
-      // data[0] = {...t};
-      setState(data);
-      setStateBkup(data);
+      setState(data.data);
+      setStateBkup(data.data);
+      setData(data);
     } catch (e) {
-      // const url = `write_logs.php`;
-      // console.log('url is---', url);
-      // axios
-      //   .get(url)
-      //   .then(res => console.log(res.data))
-      //   .then(err => console.log('----err---', err.response.data.message));
       console.log('error occured 4---', e.message);
     }
   };
@@ -124,24 +127,35 @@ const TableScreen = ({navigation}) => {
 
   return (
     <SafeAreaView style={styles.body}>
-      <View style={styles.row1}>
-        <Text style={styles.memberLabel}>Filter : </Text>
-        <TextInput
-          placeholder="SEARCH TABLE NUMBER"
-          placeholderTextColor="#BBB"
-          style={{...styles.textInput, width: '70%'}}
-          autoCapitalize="words"
-          onChangeText={searchTables}
-          value={searchStr}
-          // onChange={onInputChange}
-        />
-        <TouchableOpacity
-          style={{...styles.button, width: 50}}
-          // onPress={getData}
-        >
-          {/* <Text style={{...styles.text, letterSpacing: 1}}>REFRESH</Text> */}
-          <FontAwesome name="search" size={25} style={{color: '#fff'}} />
-        </TouchableOpacity>
+      <StatusBar backgroundColor={MAIN_COLOR} barStyle="light-content" />
+      <View style={{flexDirection: 'row'}}>
+        <View style={styles.row1}>
+          <Text style={styles.memberLabel}>Filter : </Text>
+          <TextInput
+            placeholder="SEARCH TABLE NUMBER"
+            placeholderTextColor="#BBB"
+            style={{...styles.textInput, width: '70%'}}
+            autoCapitalize="words"
+            onChangeText={searchTables}
+            value={searchStr}
+            // onChange={onInputChange}
+          />
+          <TouchableOpacity style={{...styles.button, width: 50}}>
+            <FontAwesome name="search" size={25} style={{color: '#fff'}} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.booked}>
+          <Text style={styles.memberLabel}>Booked </Text>
+          <Text
+            style={{
+              fontSize: 30,
+              fontWeight: 'bold',
+              color: ERR_CLR,
+              paddingRight: 10,
+            }}>
+            {data && data.booked_count}
+          </Text>
+        </View>
       </View>
       <FlatList
         // key={this.state.horizontal ? 'h' : 'v'}
@@ -159,19 +173,10 @@ const TableScreen = ({navigation}) => {
           return (
             <TouchableOpacity
               style={styles.gridItem}
-              onPress={e => {
+              onPress={() => {
                 onTablePress(item);
               }}>
               <View style={{...styles.item, backgroundColor: bgColor}}>
-                {/* <MaterialIcons
-                  name="table-chair"
-                  size={50}
-                  style={{
-                    backgroundColor:
-                      item.status === 'BOOKED' ? ERR_CLR : MAIN_COLOR,
-                  }}
-                  color="#fff"
-                /> */}
                 {isVacant ? (
                   <Image
                     source={require(`../../../assets/images/table_green.jpg`)}
@@ -219,13 +224,14 @@ const styles = StyleSheet.create({
     // backgroundColor: '#4ffed0',
   },
   text: {
-    fontSize: 20,
+    fontSize: 26,
     fontStyle: 'italic',
+    fontWeight: 'bold',
   },
   gridItem: {
     marginVertical: 3,
     width: Dimensions.get('window').width / 2.0, //Device width divided in almost a half
-    height: 150,
+    height: 160,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -243,9 +249,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
     paddingBottom: 10,
     paddingHorizontal: 5,
+    width: '70%',
   },
   textInput: {
     // marginTop: 10,
@@ -265,6 +272,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     alignItems: 'flex-start',
+  },
+  booked: {
+    marginTop: 20,
+    marginBottom: 10,
+    paddingLeft: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 10,
+    paddingHorizontal: 5,
+    width: '30%',
   },
 });
 

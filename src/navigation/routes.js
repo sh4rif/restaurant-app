@@ -7,6 +7,7 @@ import {
   TableStackScreens,
   OrderStackScreens,
   MenuTabScreen,
+  BookedTableTabScreen,
 } from './HomeStackScreens';
 
 import CustomDrawerContent from './DrawerContent';
@@ -26,6 +27,8 @@ function Routes() {
   const [orders, setOrders] = useState([]);
   const [baseURL, setBaseURL] = useState(null);
   const [member, setMember] = useState(null);
+  const [selectedTable, setSelectedTable] = useState(null);
+  const [bookedOrder, setBookedOrder] = useState([]);
 
   useEffect(() => {
     getArea();
@@ -78,6 +81,10 @@ function Routes() {
         setBaseURL,
         member,
         setMember,
+        selectedTable,
+        setSelectedTable,
+        bookedOrder,
+        setBookedOrder,
       }}>
       <Drawer.Navigator
         // initialRouteName="Settings"
@@ -94,6 +101,11 @@ function Routes() {
             <Drawer.Screen name="Menu" component={MenuTabScreen} />
             <Drawer.Screen name="Orders" component={OrderStackScreens} />
             <Drawer.Screen name="Settings" component={SettingsStackScreen} />
+            <Drawer.Screen
+              name="OrderDetail"
+              component={BookedTableTabScreen}
+              options={{headerShown: true, headerTitle: 'Order Details'}}
+            />
           </>
         ) : (
           <Drawer.Screen

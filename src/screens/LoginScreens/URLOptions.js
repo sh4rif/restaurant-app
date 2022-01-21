@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 // import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Feather from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome5';
@@ -27,13 +27,30 @@ const URLOptionsScreen = ({navigation}) => {
   const {colors} = useTheme();
 
   const [url, setUrl] = useState(baseURL);
-  // const onChangeHandler = value => {
-  //   setUrl(value);
-  // };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', e => {
+      getStoreUrl();
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const getStoreUrl = async () => {
+    try {
+      const url = await AsyncStorageLib.getItem(storageVarNames.url);
+      console.log({storedURL: url});
+      setUrl(url);
+    } catch (e) {}
+  };
 
   const setUrlOnPress = async () => {
+    let address = url;
+    if (!url.endsWith('/')) {
+      address = address + '/';
+    }
     try {
-      await AsyncStorageLib.setItem(storageVarNames.url, url);
+      await AsyncStorageLib.setItem(storageVarNames.url, address);
       // const area = await AsyncStorageLib.getItem(storageVarNames.url)
       // console.log({area});
       navigation.navigate('LoginScreen');
@@ -73,11 +90,6 @@ const URLOptionsScreen = ({navigation}) => {
               />
             </Animatable.View>
           </View>
-          {!regEx.test(url) ? (
-            <Animatable.View animation="fadeInLeft" duration={300}>
-              <Text style={styles.errorMsg}>Invalid URL!</Text>
-            </Animatable.View>
-          ) : null}
 
           {/* buttons */}
           <View style={styles.button}>

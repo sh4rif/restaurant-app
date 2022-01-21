@@ -82,7 +82,7 @@ function CustomDrawerContent(props) {
                 <Icon name="cart-outline" color={color} size={size} />
               )}
               onPress={() => {
-                navigation.navigate('Orders');
+                // navigation.navigate('Orders');
               }}
             />
             {/* <DrawerItem
@@ -100,7 +100,7 @@ function CustomDrawerContent(props) {
                 <Icon name="cog-outline" color={color} size={size} />
               )}
               onPress={() => {
-                navigation.navigate('Settings');
+                // navigation.navigate('Settings');
               }}
             />
             <DrawerItem

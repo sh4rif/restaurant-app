@@ -9,16 +9,23 @@ export const GET_AREAS = 'get_areas.php';
 export const GET_TABLES = 'get_tables.php';
 export const LOGIN = 'loginn_post.php';
 export const PLACE_ORDER = 'saveorder.php';
+export const UPDATE_ORDER = 'updateorder.php';
+export const GET_ORDER = 'get_order.php';
+export const VERIFY_MEMBER = 'verify_member.php';
 
 export const blankOrder = {
+  id: '',
   empno: '',
+  qot: '',
   table_id: '',
+  order_id: '',
+  order_no : '',
   order_date: '',
-  order_time: '',
+  member_id: 'ABC-1',
   order: [],
 };
 
-export const storageVarNames ={
+export const storageVarNames = {
   url: 'url',
   area: 'area',
-}
+};

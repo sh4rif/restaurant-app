@@ -8,6 +8,7 @@ import {
   Platform,
   FlatList,
   TextInput,
+  StatusBar,
 } from 'react-native';
 
 import {MAIN_COLOR} from '../../../constants/colors';
@@ -64,19 +65,13 @@ const MenuScreen = ({navigation}) => {
     }
   };
   const onClassClick = item => {
-    // console.log({item});
-    // setSelectedClass(item);
     setSelectedClassId(item.CLS_ID);
-    // const a = getSelectedIClassItem(items, item.CLS_ID);
     const classItems = getSelectedIClassItem(items, item.CLS_ID);
     setSelectedItems([...classItems]);
   };
 
   const verifyMemberonPress = value => {
-    // console.log(value);
-    // const orderFromCtx = state.order;
-    console.log({order, state, items});
-    // console.log(JSON.stringify(order));
+    console.log({value, order, state, items});
   };
 
   const onChkBoxPress = item => {
@@ -94,7 +89,7 @@ const MenuScreen = ({navigation}) => {
     const idx = selectedItems.findIndex(
       ({ITEM_ID}) => ITEM_ID === item.ITEM_ID,
     );
-    // console.log({idx, item});
+
     const items = [...selectedItems];
     items[idx] = {...item, checked: !item.checked};
     setSelectedItems([...items]);
@@ -133,18 +128,9 @@ const MenuScreen = ({navigation}) => {
         <View style={{...styles.menuBody, width: '10%'}}>
           <Text style={styles.headerTxt}>
             <CheckBox
-              // disabled={true}
-              // checked={(item.checked)}
               checked={isChecked}
               onPress={() => {
                 onChkBoxPress(item);
-                // const idx = selectedItems.findIndex(
-                //   ({ITEM_ID}) => ITEM_ID === item.ITEM_ID,
-                // );
-                // console.log({idx, item});
-                // const items = [...selectedItems];
-                // items[idx] = {...item, checked: !item.checked};
-                // setSelectedItems([...items]);
               }}
               checkedColor={MAIN_COLOR}
             />
@@ -178,9 +164,11 @@ const MenuScreen = ({navigation}) => {
     );
   };
   return (
-    <DismissKeyboard>
-      <View style={styles.body}>
-        {/* <View style={styles.row1}>
+    <>
+      <StatusBar backgroundColor={MAIN_COLOR} barStyle="light-content" />
+      <DismissKeyboard>
+        <View style={styles.body}>
+          {/* <View style={styles.row1}>
         <Text style={styles.memberLabel}>Member ID : </Text>
         <TextInput
           placeholder="i.e R-123"
@@ -193,56 +181,59 @@ const MenuScreen = ({navigation}) => {
           <Text style={{...styles.text}}>Verify</Text>
         </TouchableOpacity>
       </View> */}
-        <VerifyMember onPress={verifyMemberonPress} />
-        <View style={styles.menuWrapper}>
-          <View style={styles.leftSide}>
-            <View style={{...styles.header1, marginBottom: 5}}>
-              <Text style={{...styles.headerTxt, color: '#fff'}}>
-                CATEGORIES
-              </Text>
-            </View>
-            <ClassesMenu
-              data={classes}
-              onPress={onClassClick}
-              selectedClassId={selectedClassId}
-            />
-          </View>
-          <View style={styles.rightSide}>
-            <View style={{flexDirection: 'row'}}>
-              <View
-                style={{
-                  ...styles.header1,
-                  width: '12%',
-                }}>
-                <Text style={{...styles.headerTxt, color: '#fff'}}>ADD</Text>
-              </View>
-              <View style={{...styles.header1, width: '50%'}}>
-                <Text
-                  style={{
-                    ...styles.headerTxt,
-                    letterSpacing: 1,
-                    color: '#fff',
-                  }}>
-                  ITEM NAME
+          <VerifyMember member_id={order.member_id} />
+          <View style={styles.menuWrapper}>
+            <View style={styles.leftSide}>
+              <View style={{...styles.header1, marginBottom: 5}}>
+                <Text style={{...styles.headerTxt, color: '#fff'}}>
+                  CATEGORIES
                 </Text>
               </View>
-              <View style={{...styles.header1, width: '20%'}}>
-                <Text style={[styles.headerTxt, {color: '#fff'}]}>ITEM ID</Text>
-              </View>
-              <View style={{...styles.header1, width: '18%'}}>
-                <Text style={{...styles.headerTxt, color: '#fff'}}>QTY</Text>
-              </View>
+              <ClassesMenu
+                data={classes}
+                onPress={onClassClick}
+                selectedClassId={selectedClassId}
+              />
             </View>
-            <FlatList
-              numColumns={1}
-              keyExtractor={(item, index) => item.ITEM_ID}
-              data={selectedItems}
-              renderItem={renderMenuBody}
-            />
+            <View style={styles.rightSide}>
+              <View style={{flexDirection: 'row'}}>
+                <View
+                  style={{
+                    ...styles.header1,
+                    width: '12%',
+                  }}>
+                  <Text style={{...styles.headerTxt, color: '#fff'}}>ADD</Text>
+                </View>
+                <View style={{...styles.header1, width: '50%'}}>
+                  <Text
+                    style={{
+                      ...styles.headerTxt,
+                      letterSpacing: 1,
+                      color: '#fff',
+                    }}>
+                    ITEM NAME
+                  </Text>
+                </View>
+                <View style={{...styles.header1, width: '20%'}}>
+                  <Text style={[styles.headerTxt, {color: '#fff'}]}>
+                    ITEM ID
+                  </Text>
+                </View>
+                <View style={{...styles.header1, width: '18%'}}>
+                  <Text style={{...styles.headerTxt, color: '#fff'}}>QTY</Text>
+                </View>
+              </View>
+              <FlatList
+                numColumns={1}
+                keyExtractor={(item, index) => item.ITEM_ID}
+                data={selectedItems}
+                renderItem={renderMenuBody}
+              />
+            </View>
           </View>
         </View>
-      </View>
-    </DismissKeyboard>
+      </DismissKeyboard>
+    </>
   );
 };
 
