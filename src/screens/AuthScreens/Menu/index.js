@@ -11,33 +11,28 @@ import {
   StatusBar,
 } from 'react-native';
 
-import {MAIN_COLOR} from '../../../constants/colors';
 import ClassesMenu from './ClassesMenu';
 import VerifyMember from './VerifyMember';
-import DismissKeyboard from '../../../components/DismissKeyboard';
-// import {blankOrder} from '../../../constants';
+import {MAIN_COLOR} from '../../../constants/colors';
 import {MainContext} from '../../../components/context';
+import DismissKeyboard from '../../../components/DismissKeyboard';
 
 const MenuScreen = ({navigation}) => {
   const [items, setItems] = useState([]);
   const [classes, setClasses] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState(null);
-  // const [order, setOrder] = useState({...blankOrder});
-  // const [selectedClass, setSelectedClass] = useState(null);
 
   const {state, order, setOrder} = useContext(MainContext);
-
   const {colors} = useTheme();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', e => {
       getData();
-      // getLoginURL();
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, state]);
 
   const getSelectedIClassItem = (items, class_id) => {
     const filteredItems = items
@@ -54,24 +49,19 @@ const MenuScreen = ({navigation}) => {
 
       const clsid = clses[0].CLS_ID;
       setSelectedClassId(clsid);
-      // setSelectedClass(clses[0]);
       const selectedItem = getSelectedIClassItem(state.items, clsid);
 
       setSelectedItems([...selectedItem]);
       setClasses([...clses]);
       setItems([...state.items]);
     } catch (e) {
-      console.log('error occured 5---', e.message);
+      console.log('error occured 4---', e.message);
     }
   };
   const onClassClick = item => {
     setSelectedClassId(item.CLS_ID);
     const classItems = getSelectedIClassItem(items, item.CLS_ID);
     setSelectedItems([...classItems]);
-  };
-
-  const verifyMemberonPress = value => {
-    console.log({value, order, state, items});
   };
 
   const onChkBoxPress = item => {
@@ -168,19 +158,6 @@ const MenuScreen = ({navigation}) => {
       <StatusBar backgroundColor={MAIN_COLOR} barStyle="light-content" />
       <DismissKeyboard>
         <View style={styles.body}>
-          {/* <View style={styles.row1}>
-        <Text style={styles.memberLabel}>Member ID : </Text>
-        <TextInput
-          placeholder="i.e R-123"
-          placeholderTextColor="#CCC"
-          style={{...styles.textInput, color: colors.text}}
-          autoCapitalize="characters"
-          onChangeText={val => {}}
-        />
-        <TouchableOpacity style={styles.button} onPress={() => {}}>
-          <Text style={{...styles.text}}>Verify</Text>
-        </TouchableOpacity>
-      </View> */}
           <VerifyMember member_id={order.member_id} />
           <View style={styles.menuWrapper}>
             <View style={styles.leftSide}>
@@ -240,19 +217,14 @@ const MenuScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   body: {
     flex: 1,
-    // alignItems: 'center',
-    // justifyContent: 'center',
-    // backgroundColor: 'orange',
     paddingTop: 10,
   },
   header1: {
     backgroundColor: MAIN_COLOR,
-    // paddingHorizontal: 5,
     paddingVertical: 10,
     alignItems: 'center',
   },
   menuBody: {
-    // backgroundColor: '#00f',
     paddingHorizontal: 5,
     paddingVertical: 8,
     alignItems: 'center',
@@ -274,7 +246,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    // backgroundColor: 'purple',
   },
   menuWrapper: {
     flex: 1,
@@ -295,8 +266,6 @@ const styles = StyleSheet.create({
     color: '#05375a',
     borderWidth: 1,
     borderColor: '#ccc',
-    // borderBottomColor: 'rgba(0,0,0,.7)',
-    // borderBottomWidth: 1,
     height: 45,
     width: '45%',
     fontSize: 16,
@@ -305,19 +274,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#20315f',
-    // fontWeight: 'bold',
-    // color: '#fff',
     letterSpacing: 3,
-
-    // fontFamily: 'Inter-Bold',
   },
   button: {
     backgroundColor: MAIN_COLOR,
     height: 45,
-    // width: 150,
     alignItems: 'center',
     justifyContent: 'center',
-    // borderRadius: 8,
     width: '25%',
   },
 });

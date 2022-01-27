@@ -21,26 +21,23 @@ import {BUTTON_GRADIENT, ERR_CLR, MAIN_COLOR} from '../../constants/colors';
 import {baseURL, storageVarNames} from '../../constants';
 import AsyncStorageLib from '@react-native-async-storage/async-storage';
 
-const regEx = /^(ftp|http|https):\/\/[^ ",]+$/;
-
 const URLOptionsScreen = ({navigation}) => {
   const {colors} = useTheme();
-
   const [url, setUrl] = useState(baseURL);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', e => {
-      getStoreUrl();
+      getStoredUrl();
     });
 
     return unsubscribe;
   }, []);
 
-  const getStoreUrl = async () => {
+  const getStoredUrl = async () => {
     try {
       const url = await AsyncStorageLib.getItem(storageVarNames.url);
       console.log({storedURL: url});
-      setUrl(url);
+      setUrl(url || 'http://192.168.2.15/api/');
     } catch (e) {}
   };
 
@@ -78,8 +75,6 @@ const URLOptionsScreen = ({navigation}) => {
               style={{...styles.textInput, color: colors.text}}
               autoCapitalize="none"
               onChangeText={val => setUrl(val)}
-              // onEndEditing={(e)=>handleValidUser(e.nativeEvent.text)}
-              // blurOnSubmit={false}
               value={url}
             />
             <Animatable.View animation="bounceIn">
@@ -115,8 +110,6 @@ const styles = StyleSheet.create({
   header: {
     flex: 1,
     justifyContent: 'flex-end',
-    // alignItems: 'center',
-    // justifyContent: 'center',
     paddingHorizontal: 20,
     paddingBottom: 50,
   },

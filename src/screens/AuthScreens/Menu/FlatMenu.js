@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, useContext} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {CheckBox} from 'react-native-elements';
 import {useTheme} from 'react-native-paper';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -12,26 +12,13 @@ import {
   StatusBar,
 } from 'react-native';
 
-import {MAIN_COLOR, SUCCESS_COLOR} from '../../../constants/colors';
+import {MAIN_COLOR} from '../../../constants/colors';
 import VerifyMember from './VerifyMember';
 import DismissKeyboard from '../../../components/DismissKeyboard';
-import {blankOrder, GET_ITEMS} from '../../../constants';
 import {MainContext} from '../../../components/context';
-// import {useTheme} from 'react-native-paper';
-let timeOutId;
-const debounce = (func, delay) => {
-  if (timeOutId) clearTimeout(timeOutId);
-  return (...args) => {
-    timeOutId = setTimeout(() => {
-      func.apply(null, args);
-    }, delay);
-  };
-};
 
 const FlatMenuScreen = ({navigation}) => {
-  // const [state, setState] = useState([]);
   const [data, setData] = useState([]);
-  // const [dataBkup, setDataBkup] = useState([])
   const [stateBkup, setStateBkup] = useState([]);
   const [items, setItems] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -73,10 +60,6 @@ const FlatMenuScreen = ({navigation}) => {
 
   const getSelectedIClassItem = (items, class_id) => {
     return items.filter(item => item.CLS_ID === class_id);
-  };
-
-  const verifyMemberonPress = value => {
-    console.log(value);
   };
 
   const onChkBoxPress = item => {
@@ -138,65 +121,17 @@ const FlatMenuScreen = ({navigation}) => {
   const ItemHeaders = () => {
     return (
       <View style={{flexDirection: 'row'}}>
-        <View
-          style={{
-            ...styles.header1,
-            width: '10%',
-            // backgroundColor: 'wheat',
-          }}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '600',
-              color: '#fff',
-              textTransform: 'uppercase',
-            }}>
-            Add
-          </Text>
+        <View style={{...styles.header1, width: '10%'}}>
+          <Text style={styles.headerTitles}>Add</Text>
         </View>
-        <View
-          style={{
-            ...styles.header1,
-            width: '60%',
-            // backgroundColor: 'purple',
-          }}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '600',
-              letterSpacing: 2,
-              color: '#fff',
-              textTransform: 'uppercase',
-            }}>
-            Item Name
-          </Text>
-        </View>
-        <View
-          style={{
-            ...styles.header1,
-            width: '15%',
-            // backgroundColor: 'wheat',
-          }}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '600',
-              color: '#fff',
-              textTransform: 'uppercase',
-            }}>
-            Item ID
-          </Text>
+        <View style={{...styles.header1, width: '60%'}}>
+          <Text style={styles.headerTitles}>Item Name</Text>
         </View>
         <View style={{...styles.header1, width: '15%'}}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '600',
-              color: '#fff',
-              textTransform: 'uppercase',
-            }}>
-            Qty
-          </Text>
+          <Text style={styles.headerTitles}>Item ID</Text>
+        </View>
+        <View style={{...styles.header1, width: '15%'}}>
+          <Text style={styles.headerTitles}>Qty</Text>
         </View>
       </View>
     );
@@ -214,7 +149,6 @@ const FlatMenuScreen = ({navigation}) => {
           paddingBottom: 10,
         }}>
         <View style={{...styles.menuBody, width: '10%'}}>
-          {/* <Text style={styles.headerTxt}>Add</Text> */}
           <CheckBox
             center
             checked={isChecked}
@@ -231,7 +165,6 @@ const FlatMenuScreen = ({navigation}) => {
           <Text style={styles.headerTxt}>{item.ITEM_ID}</Text>
         </View>
         <View style={{...styles.menuBody, alignItems: 'center', width: '13%'}}>
-          {/* <Text style={styles.headerTxt}>Qty</Text> */}
           <TextInput
             style={{...styles.textInput, color: colors.text, width: '100%'}}
             autoCapitalize="words"
@@ -239,7 +172,6 @@ const FlatMenuScreen = ({navigation}) => {
             onChangeText={value => {
               onQtyChange(value, item);
             }}
-            // onChange={onInputChange}
             value={(orderedItem && orderedItem.qty) || ''}
           />
         </View>
@@ -260,20 +192,7 @@ const FlatMenuScreen = ({navigation}) => {
       <StatusBar backgroundColor={MAIN_COLOR} barStyle="light-content" />
       <DismissKeyboard>
         <View style={styles.body}>
-        <VerifyMember member_id={order.member_id} />
-          {/* <View style={styles.row}>
-            <Text style={styles.memberLabel}>Member ID : </Text>
-            <TextInput
-              placeholder="i.e R-123"
-              placeholderTextColor="#BBB"
-              style={{...styles.textInput, color: colors.text}}
-              autoCapitalize="characters"
-              onChangeText={() => {}}
-            />
-            <TouchableOpacity style={styles.button} onPress={() => {}}>
-              <Text style={{...styles.text}}>VERIFY</Text>
-            </TouchableOpacity>
-          </View> */}
+          <VerifyMember member_id={order.member_id} />
           <View style={styles.row1}>
             <Text style={styles.memberLabel}>Filter : </Text>
             <TextInput
@@ -283,12 +202,10 @@ const FlatMenuScreen = ({navigation}) => {
               autoCapitalize="words"
               onChangeText={search}
               value={searchStr}
-              // onChange={onInputChange}
             />
             <TouchableOpacity
               style={{...styles.button, width: 50}}
               onPress={getData}>
-              {/* <Text style={{...styles.text, letterSpacing: 1}}>REFRESH</Text> */}
               <FontAwesome name="refresh" size={25} style={{color: '#fff'}} />
             </TouchableOpacity>
           </View>
@@ -313,9 +230,6 @@ const FlatMenuScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   body: {
     flex: 1,
-    // alignItems: 'center',
-    // justifyContent: 'center',
-    // backgroundColor: 'orange',
     paddingTop: 10,
   },
   header1: {
@@ -323,7 +237,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 10,
     alignItems: 'center',
-    // borderRightWidth: 1,
   },
   titleText: {
     fontSize: 20,
@@ -333,12 +246,14 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   menuBody: {
-    // backgroundColor: '#00f',
-    // paddingHorizontal: 5,
-    // paddingVertical: 10,
-    // alignItems: 'center',
-    // padding: 1,
     justifyContent: 'center',
+  },
+  headerTitles: {
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: 2,
+    color: '#fff',
+    textTransform: 'uppercase',
   },
   headerTxt: {fontWeight: '600', fontSize: 16},
   row1: {

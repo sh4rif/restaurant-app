@@ -1,5 +1,4 @@
 import React from 'react';
-
 import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
 
 import {MAIN_COLOR} from '../../../constants/colors';

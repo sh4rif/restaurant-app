@@ -3,13 +3,13 @@ import axios from 'axios';
 import {View, Text, StyleSheet, StatusBar, SafeAreaView} from 'react-native';
 import AsyncStorageLib from '@react-native-async-storage/async-storage';
 
-import ButtonComponent from '../../components/button';
-import {MainContext} from '../../components/context';
-import {blankOrder, GET_ITEMS, storageVarNames} from '../../constants';
 import {MAIN_COLOR} from '../../constants/colors';
+import {MainContext} from '../../components/context';
+import ButtonComponent from '../../components/button';
+import {blankOrder, GET_ITEMS, storageVarNames} from '../../constants';
 
 const HomeScreen = ({navigation}) => {
-  const {state, setState, user, userArea, setOrder, baseURL, setBaseURL} =
+  const {state, setState, user, setOrder, baseURL, setBaseURL} =
     useContext(MainContext);
 
   useEffect(() => {
@@ -32,17 +32,22 @@ const HomeScreen = ({navigation}) => {
         url = base_url;
         setBaseURL(base_url);
       }
+      console.log('url for getting items', `${url}${GET_ITEMS}`);
       const {data} = await axios.get(`${url}${GET_ITEMS}`);
+      console.log({want_to_run_this: data});
       setState({
         ...state,
         items: data.items,
         classes: data.classes,
       });
-      // console.log({itemsFromHome: data});
       setOrder({...blankOrder});
     } catch (e) {
       console.log('error occured 1---', e.message);
     }
+  };
+
+  const onTakeOrderPress = () => {
+    navigation.navigate('Tables');
   };
 
   return (
@@ -66,20 +71,12 @@ const HomeScreen = ({navigation}) => {
         </View>
         <View style={styles.row3}>
           <Text style={styles.text}>
-            <ButtonComponent
-              title="Take Order"
-              onPress={() => {
-                navigation.navigate('Tables');
-                // AsyncStorageLib.clear();
-                // AsyncStorageLib.removeItem(storageVarNames.area);
-                // signOut();
-              }}
-            />
+            <ButtonComponent title="Take Order" onPress={onTakeOrderPress} />
           </Text>
         </View>
         <View style={styles.row4}>
           <View style={styles.row4col1}>
-            {/* <Text style={styles.text}>7</Text> */}
+            {/* <Text style={styles.text}>{JSON.stringify(userArea)}</Text> */}
           </View>
           <View style={styles.row4col2}>
             {/* <Text style={styles.text}>8</Text> */}

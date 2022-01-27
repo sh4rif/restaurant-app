@@ -23,15 +23,8 @@ const AreaOptionsScreen = ({navigation}) => {
   const [state, setState] = useState([]);
   const [selectedArea, setSelectedArea] = useState(null);
 
-  const {
-    userArea,
-    setUserArea,
-    user,
-    isLoggedIn,
-    setIsLoggedIn,
-    baseURL,
-    setBaseURL,
-  } = useContext(MainContext);
+  const {setUserArea, user, setIsLoggedIn, baseURL, setBaseURL} =
+    useContext(MainContext);
 
   useEffect(() => {
     getAreas();
@@ -48,10 +41,12 @@ const AreaOptionsScreen = ({navigation}) => {
   }, [navigation]);
 
   const getAreas = async () => {
+    console.log('getting area');
+    let url = baseURL;
+    const temp  = `${url}${GET_AREAS}`
+    console.log('getting area', url);
     try {
-      let url = baseURL;
       if (!baseURL) {
-        
         const base_url = await AsyncStorageLib.getItem(storageVarNames.url);
         console.log('baseURL is base_url', base_url);
         if (!base_url) {
@@ -132,8 +127,6 @@ const AreaOptionsScreen = ({navigation}) => {
         {/* <Text>{JSON.stringify(state)}</Text> */}
       </View>
       <Animatable.View animation="fadeInUpBig" style={styles.footer}>
-        {/* username field */}
-        {/* <Text style={styles.text_footer}>AREAS</Text> */}
         <FlatList
           numColumns={1}
           keyExtractor={(item, index) => item.AREA_ID}
@@ -145,8 +138,7 @@ const AreaOptionsScreen = ({navigation}) => {
         <View style={styles.button}>
           <TouchableOpacity style={styles.signIn} onPress={setArea}>
             <LinearGradient colors={BUTTON_GRADIENT} style={styles.signIn}>
-              <Text
-                style={{...styles.textSign, color: '#fff', letterSpacing: 1}}>
+              <Text style={styles.textSign}>
                 <FontAwesome name="door-open" size={25} /> SET AREA
               </Text>
             </LinearGradient>
@@ -181,7 +173,7 @@ const styles = StyleSheet.create({
   text_header: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 30,
+    fontSize: 25,
   },
   text_footer: {
     color: '#05375a',
@@ -210,6 +202,8 @@ const styles = StyleSheet.create({
   textSign: {
     fontSize: 18,
     fontWeight: 'bold',
+    letterSpacing: 1,
+    color: '#fff',
   },
 });
 

@@ -34,7 +34,7 @@ const VerifyMember = ({member_id}) => {
     block_status: '',
   });
 
-  const {baseURL} = useContext(MainContext);
+  const {baseURL, setOrder, order} = useContext(MainContext);
 
   const verifyMember = async () => {
     if (member.memberID === memberID) {
@@ -65,6 +65,13 @@ const VerifyMember = ({member_id}) => {
       setBgColor(isActive ? SUCCESS_COLOR : ERR_CLR);
       setBtnIcon(isActive ? 'account-check' : 'account-remove');
     } catch (e) {}
+  };
+
+  const onMemberIdChange = member_id => {
+    setMemberID(member_id);
+    setOrder({...order, member_id});
+    if (bgColor !== MAIN_COLOR) setBgColor(MAIN_COLOR);
+    if (btnIcon !== 'account-search') setBtnIcon('account-search');
   };
 
   return (
@@ -173,12 +180,7 @@ const VerifyMember = ({member_id}) => {
           placeholderTextColor="#CCC"
           style={{...styles.textInput, color: colors.text}}
           autoCapitalize="characters"
-          // onChangeText={onChangeText}
-          onChangeText={val => {
-            setMemberID(val);
-            if (bgColor !== MAIN_COLOR) setBgColor(MAIN_COLOR);
-            if (btnIcon !== 'account-search') setBtnIcon('account-search');
-          }}
+          onChangeText={onMemberIdChange}
           value={memberID}
         />
         <TouchableOpacity
@@ -189,8 +191,7 @@ const VerifyMember = ({member_id}) => {
           onPress={verifyMember}
           disabled={!memberID.trim().length}>
           <Text style={{...styles.text}}>
-            {/* NOT VERIFIED */}
-            <Icon name={btnIcon} size={25} /> {}
+            <Icon name={btnIcon} size={25} />
             VERIFY
           </Text>
         </TouchableOpacity>

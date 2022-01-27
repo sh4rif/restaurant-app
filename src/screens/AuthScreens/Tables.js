@@ -13,13 +13,12 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
-  Alert,
   StatusBar,
 } from 'react-native';
 
-import {ERR_CLR, MAIN_COLOR, SUCCESS_COLOR} from '../../constants/colors';
-import {GET_ORDER, GET_TABLES, storageVarNames} from '../../constants';
 import {MainContext} from '../../components/context';
+import {GET_ORDER, GET_TABLES, storageVarNames} from '../../constants';
+import {ERR_CLR, MAIN_COLOR, SUCCESS_COLOR} from '../../constants/colors';
 
 const blankOrder = {
   id: '',
@@ -29,7 +28,7 @@ const blankOrder = {
   order_id: '',
   order_no: '',
   order_date: '',
-  member_id: 'ABC-3',
+  member_id: '',
   order: [],
 };
 
@@ -52,12 +51,14 @@ const TableScreen = ({navigation}) => {
 
   const onTablePress = async item => {
     const newOrder = {
+      id: '',
       empno: user.user_id,
+      qot: '',
       table_id: item.id,
       order_id: item.order_id || null,
+      order_no: '',
       order_date: user.wdate,
-      order_time: new Date(),
-      member_id: 'ABC-2',
+      member_id: '',
       order: [],
     };
 
@@ -70,6 +71,7 @@ const TableScreen = ({navigation}) => {
       const {id, order_no} = item;
       const {user_id, wdate} = user;
       const url = `${baseURL}${GET_ORDER}?order_no=${order_no}&emp_no=${user_id}&table_id=${id}&working_date='${wdate}'`;
+      console.log('get single order url', url)
       try {
         const {data} = await axios.get(url);
         console.log({data, item});
@@ -108,12 +110,14 @@ const TableScreen = ({navigation}) => {
 
       const wdt = user && user.wdate;
       const url = `${baseURL}${GET_TABLES}?area_id=${areaID}&wdt='${wdt}'&empno=${user.user_id}`;
+      console.log('get tables url', url);
       const {data} = await axios.get(url);
+      console.log('TABLES', data);
       setState(data.data);
       setStateBkup(data.data);
       setData(data);
     } catch (e) {
-      console.log('error occured 4---', e.message);
+      console.log('error occured 2---', e.message);
     }
   };
 
@@ -158,7 +162,6 @@ const TableScreen = ({navigation}) => {
         </View>
       </View>
       <FlatList
-        // key={this.state.horizontal ? 'h' : 'v'}
         numColumns={2}
         keyExtractor={(item, index) => item.id}
         data={state
@@ -201,7 +204,6 @@ const TableScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   body: {
     flex: 1,
-    // backgroundColor: '#00f',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
@@ -209,19 +211,13 @@ const styles = StyleSheet.create({
   item: {
     width: '100%',
     height: 130,
-    // marginTop: 10,
-    // flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
   itemTxt: {
     width: '100%',
     height: 30,
-    // margin: 10,
-    // flexDirection: 'row',
-    // justifyContent: 'center',
     alignItems: 'center',
-    // backgroundColor: '#4ffed0',
   },
   text: {
     fontSize: 26,
@@ -238,10 +234,8 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: MAIN_COLOR,
     height: 45,
-    // width: 150,
     alignItems: 'center',
     justifyContent: 'center',
-    // borderRadius: 8,
     width: '25%',
   },
   row1: {
@@ -249,23 +243,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    // justifyContent: 'space-between',
     paddingBottom: 10,
     paddingHorizontal: 5,
     width: '70%',
   },
   textInput: {
-    // marginTop: 10,
-    // flex: 1,
     marginTop: -2,
     paddingLeft: 10,
     color: '#05375a',
     borderWidth: 1,
     borderColor: '#ccc',
-    // borderBottomColor: 'rgba(0,0,0,.7)',
-    // borderBottomWidth: 1,
     height: 45,
-    // width: '60%',
     fontSize: 16,
   },
   memberLabel: {

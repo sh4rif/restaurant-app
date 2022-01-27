@@ -29,8 +29,8 @@ const LoginScreen = ({navigation}) => {
   // const [baseURL, setBaseURL] = useState(null);
   const [state, setState] = useState({
     tag: 'login',
-    username: '',
-    password: '',
+    username: 'RC-172',
+    password: '123',
   });
   const {
     signIn,
@@ -103,7 +103,7 @@ const LoginScreen = ({navigation}) => {
         navigation.navigate('OptionsScreen', {screen: 'AreaOptionsScreen'});
       }
     } catch (e) {
-      console.log('Error Occured 1 -- ', e);
+      console.log('Error Occured 5 -- ', e);
     }
   };
   return (
@@ -131,6 +131,7 @@ const LoginScreen = ({navigation}) => {
                 passwordRef.current.focus();
               }}
               blurOnSubmit={false}
+              value={state.username}
             />
             {checkTextInputChange ? (
               <Animatable.View animation="bounceIn">
@@ -154,6 +155,7 @@ const LoginScreen = ({navigation}) => {
               style={{...styles.textInput, color: colors.text}}
               onChangeText={val => onChangeHandler('password', val)}
               autoCapitalize="none"
+              value={state.password}
             />
             <TouchableOpacity onPress={() => setShowPwd(!showPwd)}>
               <Feather

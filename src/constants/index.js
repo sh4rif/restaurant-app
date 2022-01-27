@@ -8,8 +8,8 @@ export const GET_ITEMS = 'get_items.php';
 export const GET_AREAS = 'get_areas.php';
 export const GET_TABLES = 'get_tables.php';
 export const LOGIN = 'loginn_post.php';
-export const PLACE_ORDER = 'saveorder.php';
-export const UPDATE_ORDER = 'updateorder.php';
+export const PLACE_ORDER = 'save_order.php';
+export const UPDATE_ORDER = 'update_order.php';
 export const GET_ORDER = 'get_order.php';
 export const VERIFY_MEMBER = 'verify_member.php';
 
@@ -21,7 +21,7 @@ export const blankOrder = {
   order_id: '',
   order_no : '',
   order_date: '',
-  member_id: 'ABC-1',
+  member_id: '',
   order: [],
 };
 

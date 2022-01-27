@@ -1,8 +1,5 @@
 import React from 'react';
-
 import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
-
-import {MAIN_COLOR, SUCCESS_COLOR} from '../../../constants/colors';
 
 export const ClassesMenu = ({data, onPress, selectedClassId}) => {
   return (
@@ -40,7 +37,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   clsTxt: {fontSize: 20, fontWeight: 'bold'},
-  button: { marginTop: 5},
+  button: {marginTop: 5},
   buttonSelected: {backgroundColor: '#959393', marginTop: 5},
 });
 
