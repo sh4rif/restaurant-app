@@ -121,7 +121,7 @@ const ViewBookedTableOrderScreen = ({navigation}) => {
           <Text style={{...styles.headerTxt}}>Item Name</Text>
         </View>
         <View style={{...styles.header1, width: '15%'}}>
-          <Text style={styles.headerTxt}>Qty SR</Text>
+          <Text style={styles.headerTxt}>QOT SR</Text>
         </View>
         <View style={{...styles.header1, width: '15%'}}>
           <Text style={{...styles.headerTxt}}>Item ID</Text>

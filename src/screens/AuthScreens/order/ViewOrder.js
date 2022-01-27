@@ -36,7 +36,6 @@ const ViewOrderScreen = ({navigation}) => {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', e => {
-
       calculateTotal(order.order);
     });
 
@@ -44,8 +43,6 @@ const ViewOrderScreen = ({navigation}) => {
   }, [navigation, order]);
 
   const placeOrder = async () => {
-
-
     const orderItems = order.order.filter(o => o.qty > 0 && o.checked);
     const orderToSumbit = {
       ...order,
@@ -55,7 +52,7 @@ const ViewOrderScreen = ({navigation}) => {
       orders: orderItems,
     };
     delete orderToSumbit.order;
-    
+
     let url = `${baseURL}${PLACE_ORDER}`;
     if (selectedTable.order_no) {
       url = `${baseURL}${UPDATE_ORDER}`;
@@ -222,12 +219,14 @@ const ViewOrderScreen = ({navigation}) => {
         <View style={{marginRight: 20}}>
           <View style={styles.row}>
             <Text style={styles.totalRow}>Total Taxable :</Text>
-            <Text style={styles.numbers}>{formatNumber(total.taxable)}</Text>
+            <Text style={styles.numbers}>
+              {total.taxable ? formatNumber(total.taxable) : ''}
+            </Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.totalRow}>Total Non-Taxable :</Text>
             <Text style={styles.numbers}>
-              {formatNumber(total.non_taxable)}
+              {total.non_taxable ? formatNumber(total.non_taxable) : ''}
             </Text>
           </View>
           <View style={styles.row}>
@@ -235,7 +234,7 @@ const ViewOrderScreen = ({navigation}) => {
               Tax :
             </Text>
             <Text style={{...styles.numbers, borderBottomWidth: 1}}>
-              {formatNumber(total.tax)}
+              {total.tax ? formatNumber(total.tax) : ''}
             </Text>
           </View>
           <View style={{...styles.row, marginBottom: 0}}>
@@ -243,7 +242,7 @@ const ViewOrderScreen = ({navigation}) => {
               Total :
             </Text>
             <Text style={{...styles.numbers, ...styles.totalTxt}}>
-              {formatNumber(total.sum)}
+              {total.sum ? formatNumber(total.sum) : ''}
             </Text>
           </View>
         </View>
