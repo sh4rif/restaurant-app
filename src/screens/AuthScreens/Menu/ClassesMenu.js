@@ -8,7 +8,6 @@ export const ClassesMenu = ({data, onPress, selectedClassId}) => {
       keyExtractor={(item, index) => item.CLS_ID}
       data={data}
       renderItem={({item}) => {
-        // console.log({item, selectedClassId})
         return (
           <TouchableOpacity
             style={

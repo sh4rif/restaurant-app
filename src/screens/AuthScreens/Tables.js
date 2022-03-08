@@ -71,16 +71,15 @@ const TableScreen = ({navigation}) => {
       const {id, order_no} = item;
       const {user_id, wdate} = user;
       const url = `${baseURL}${GET_ORDER}?order_no=${order_no}&emp_no=${user_id}&table_id=${id}&working_date='${wdate}'`;
-      console.log('get single order url', url)
+      console.log('get_order_url', url);
       try {
         const {data} = await axios.get(url);
-        console.log({data, item});
+        console.log('order is', data);
         setBookedOrder(data);
         navigation.navigate('OrderDetail', {screen: 'ViewBookedTableOrderScr'});
       } catch (e) {
-        setBookedOrder([]);
+        setBookedOrder({member_id: null, data: []});
       }
-      // console.log({url, data});
     }
   };
 
@@ -110,9 +109,8 @@ const TableScreen = ({navigation}) => {
 
       const wdt = user && user.wdate;
       const url = `${baseURL}${GET_TABLES}?area_id=${areaID}&wdt='${wdt}'&empno=${user.user_id}`;
-      console.log('get tables url', url);
+      console.log('url of get tables', url);
       const {data} = await axios.get(url);
-      console.log('TABLES', data);
       setState(data.data);
       setStateBkup(data.data);
       setData(data);

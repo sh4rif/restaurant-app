@@ -18,9 +18,11 @@ import {MainContext} from '../../../components/context';
 import {PLACE_ORDER, UPDATE_ORDER} from '../../../constants';
 import DismissKeyboard from '../../../components/DismissKeyboard';
 import {ERR_CLR, MAIN_COLOR, SUCCESS_COLOR} from '../../../constants/colors';
+import ButtonComponent from '../../../components/button';
 
 const ViewOrderScreen = ({navigation}) => {
   const [showComments, setShowComments] = useState(false);
+  const [submitted, setSubmited] = useState(false);
   const [total, setTotal] = useState({
     taxable: 0,
     non_taxable: 0,
@@ -32,17 +34,23 @@ const ViewOrderScreen = ({navigation}) => {
 
   useEffect(() => {
     calculateTotal(order.order);
+    setShowComments(false);
   }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', e => {
       calculateTotal(order.order);
+      setSubmited(false);
+      setShowComments(false);
     });
 
     return unsubscribe;
   }, [navigation, order]);
 
   const placeOrder = async () => {
+    setSubmited(true);
+    // console.log('order is', order);
+    // return;
     const orderItems = order.order.filter(o => o.qty > 0 && o.checked);
     const orderToSumbit = {
       ...order,
@@ -51,17 +59,19 @@ const ViewOrderScreen = ({navigation}) => {
       order_id: selectedTable.order_no,
       orders: orderItems,
     };
+
     delete orderToSumbit.order;
 
     let url = `${baseURL}${PLACE_ORDER}`;
     if (selectedTable.order_no) {
       url = `${baseURL}${UPDATE_ORDER}`;
     }
+    console.log('order to submit', orderToSumbit);
     try {
       const {data} = await axios.post(url, orderToSumbit);
-      console.log({savedOrderData: data});
       if (data.error !== 0) {
         Alert.alert('Order', 'Order failed!, please try again');
+        setSubmited(true)
         return;
       }
 
@@ -76,17 +86,10 @@ const ViewOrderScreen = ({navigation}) => {
         order_date: '',
         order: [],
       });
-      console.log({orderPlaced: data});
       navigation.navigate('Home');
     } catch (e) {
       console.log('error while saving order', e);
     }
-    console.log({
-      orderToSumbit,
-      url: url,
-      user,
-      userArea,
-    });
   };
 
   const onValChange = (keyName, value, item, index) => {
@@ -128,7 +131,6 @@ const ViewOrderScreen = ({navigation}) => {
         taxable += row_total;
         const row_tax = (row_total / 100) * tax_rate;
         taxable_amounts.push(row_tax);
-        console.log({price, tax_rate, qty, row_total, row_tax});
       });
 
     const non_taxable_items = items
@@ -142,7 +144,6 @@ const ViewOrderScreen = ({navigation}) => {
 
     const tax = Math.ceil(taxable_amounts.reduce((a, b) => a + b, 0));
     const sum = tax + non_taxable + taxable;
-    // console.log({tax, sum});
     setTotal({...total, non_taxable, taxable, tax, sum});
   };
 
@@ -213,6 +214,10 @@ const ViewOrderScreen = ({navigation}) => {
     );
   };
 
+  const onGoHomePress = () => {
+    navigation.navigate('Home');
+  };
+
   const renderTotal = () => {
     return (
       <View style={styles.totalWrapper}>
@@ -254,7 +259,15 @@ const ViewOrderScreen = ({navigation}) => {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
         <View style={styles.no_order}>
-          <Text style={{fontSize: 30, color: '#fff'}}>NO ORDER</Text>
+          <Text style={{fontSize: 30, color: '#fff', marginTop: 20}}>
+            NO ORDER
+          </Text>
+          <ButtonComponent
+            title="Go Home"
+            onPress={onGoHomePress}
+            style={{backgroundColor: ERR_CLR, marginBottom: 20}}
+            textStyle={{fontSize: 25}}
+          />
         </View>
       </View>
     );
@@ -280,9 +293,14 @@ const ViewOrderScreen = ({navigation}) => {
                   </Text>
                 </View>
                 <View style={{flexDirection: 'row'}}>
-                  <Text style={styles.member}>
-                    {showComments ? 'Hide' : 'Show'} Comments
-                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setShowComments(!showComments);
+                    }}>
+                    <Text style={styles.member}>
+                      {showComments ? 'Hide' : 'Show'} Comments
+                    </Text>
+                  </TouchableOpacity>
                   <CheckBox
                     checked={showComments}
                     onPress={() => {
@@ -324,53 +342,41 @@ const ViewOrderScreen = ({navigation}) => {
                 renderItem={renderItems}
               />
               {renderTotal()}
-              {/* <View style={{flexDirection: 'row'}}>
+            </View>
+          </View>
+          {order.order.filter(o => o.checked).length > 0 ? (
+            <View style={{flexDirection: 'row'}}>
               <View style={{...styles.header1, ...styles.addItems}}>
-                <TouchableOpacity style={styles.deleteBtn} onPress={addMoreItems}>
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={addMoreItems}>
                   <Text style={{...styles.headerTxt, letterSpacing: 1}}>
                     <Icon name="add-circle-outline" size={26} /> ADD ITEMS
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              <View style={{...styles.header1, width: '50%'}}>
-                <TouchableOpacity style={styles.deleteBtn} onPress={() => {}}>
-                  <Text style={{...styles.headerTxt, letterSpacing: 1}}>
-                    Place Order <Icon name="checkmark-done-outline" size={26} />
-                  </Text>
+              <View style={!submitted ? {...styles.header1, width: '50%'} : {...styles.disabledBG, width: '50%'}}>
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  disabled={submitted}
+                  onPress={() => {
+                    placeOrder(order.order);
+                  }}>
+                  {!submitted ? (
+                    <Text style={{...styles.headerTxt, letterSpacing: 1}}>
+                      Place Order{' '}
+                      <Icon name="checkmark-done-outline" size={26} />
+                    </Text>
+                  ) : (
+                    <Text style={{...styles.headerTxt, letterSpacing: 1, color: '#000'}}>
+                      Please wait...
+                    </Text>
+                  )}
                 </TouchableOpacity>
               </View>
-            </View> */}
             </View>
-
-            {/* <View>
-            <Text>Bottom area</Text>
-          </View> */}
-          </View>
-          {/* <View style={styles.menuWrapper}>
-          <Text>Footer</Text>
-        </View> */}
-          <View style={{flexDirection: 'row'}}>
-            <View style={{...styles.header1, ...styles.addItems}}>
-              <TouchableOpacity style={styles.deleteBtn} onPress={addMoreItems}>
-                <Text style={{...styles.headerTxt, letterSpacing: 1}}>
-                  <Icon name="add-circle-outline" size={26} /> ADD ITEMS
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={{...styles.header1, width: '50%'}}>
-              <TouchableOpacity
-                style={styles.deleteBtn}
-                onPress={() => {
-                  placeOrder(order.order);
-                }}>
-                <Text style={{...styles.headerTxt, letterSpacing: 1}}>
-                  Place Order <Icon name="checkmark-done-outline" size={26} />
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+          ) : null}
         </View>
       </DismissKeyboard>
     </>
@@ -386,10 +392,17 @@ const styles = StyleSheet.create({
     backgroundColor: MAIN_COLOR,
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    height: 200,
   },
   header1: {
     backgroundColor: MAIN_COLOR,
+    paddingHorizontal: 5,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  disabledBG: {
+    backgroundColor: '#ccc',
     paddingHorizontal: 5,
     paddingVertical: 10,
     alignItems: 'center',
@@ -433,6 +446,9 @@ const styles = StyleSheet.create({
   addItems: {
     backgroundColor: SUCCESS_COLOR,
     width: '50%',
+  },
+  disableItem: {
+    backgroundColor: '#ddd',
   },
   totalRow: {fontSize: 20, fontWeight: 'bold', width: 200},
   totalTxt: {fontSize: 26, color: MAIN_COLOR},

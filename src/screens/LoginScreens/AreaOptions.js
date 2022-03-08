@@ -41,14 +41,10 @@ const AreaOptionsScreen = ({navigation}) => {
   }, [navigation]);
 
   const getAreas = async () => {
-    console.log('getting area');
     let url = baseURL;
-    const temp  = `${url}${GET_AREAS}`
-    console.log('getting area', url);
     try {
       if (!baseURL) {
         const base_url = await AsyncStorageLib.getItem(storageVarNames.url);
-        console.log('baseURL is base_url', base_url);
         if (!base_url) {
           navigation.navigate('URLOptionsScreen');
           return;
@@ -56,10 +52,7 @@ const AreaOptionsScreen = ({navigation}) => {
         setBaseURL(base_url);
         url = base_url;
       }
-      console.log('url -- 3', url, `${url}${GET_AREAS}`);
       const {data} = await axios.get(`${url}${GET_AREAS}`);
-
-      console.log('areas', data);
       setState([...data]);
     } catch (e) {
       console.log('error while fetching areas', e);

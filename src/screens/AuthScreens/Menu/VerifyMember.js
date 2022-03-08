@@ -157,6 +157,32 @@ const VerifyMember = ({member_id}) => {
                   </Text>
                 </View>
               </View>
+              <View style={styles.member_modal_body_context}>
+                <View style={styles.model_info_left_side}>
+                  <Text
+                    style={{
+                      ...styles.modal_text,
+                      color: member.status === 'ACTIVE' ? MAIN_COLOR : ERR_CLR,
+                    }}>
+                    Status:
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    width: 208,
+                    backgroundColor:
+                      member.status === 'ACTIVE' ? 'white' : ERR_CLR,
+                  }}>
+                  <Text
+                    style={{
+                      ...styles.modal_text,
+                      letterSpacing: 0,
+                      color: member.status === 'ACTIVE' ? '#000' : '#fff',
+                    }}>
+                    {member.status}
+                  </Text>
+                </View>
+              </View>
             </View>
             <Pressable
               style={styles.member_modal_footer}
@@ -181,7 +207,7 @@ const VerifyMember = ({member_id}) => {
           style={{...styles.textInput, color: colors.text}}
           autoCapitalize="characters"
           onChangeText={onMemberIdChange}
-          value={memberID}
+          value={member_id}
         />
         <TouchableOpacity
           style={{
@@ -240,7 +266,7 @@ const styles = StyleSheet.create({
   member_modal: {
     // padding: 20,
     width: 400,
-    height: 600,
+    height: 650,
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#000',
@@ -266,7 +292,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   member_modal_body: {
-    height: 488,
+    height: 538,
     // justifyContent: 'center',
     marginTop: 10,
     alignItems: 'center',

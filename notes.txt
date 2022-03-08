@@ -1,0 +1,17 @@
+https://reactnative.dev/docs/signed-apk-android#testing-the-release-build-of-your-app
+# change my-upload-key to filename of your choice
+keytool -genkeypair -v -storetype PKCS12 -keystore my-upload-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
+
+# change this to android/app/build.gradle 
+def enableSeparateBuildPerCPUArchitecture = true
+def enableProguardInReleaseBuilds = true
+universalApk true
+
+cd android
+gradlew bundleRelease // to release .aab file for android playstore
+gradlew assembleRelease // to release .apk file for different releases 
+
+D:\_work\react-native\r_club_app_apk\android\app\build\outputs\apk
+
+# add the following line if error occured while gradlew assembleRelease in android/gradle.properties
+org.gradle.jvmargs=-Xmx4608m

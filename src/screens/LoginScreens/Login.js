@@ -16,6 +16,7 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  Image,
 } from 'react-native';
 
 import DismissKeyboard from '../../components/DismissKeyboard';
@@ -29,8 +30,8 @@ const LoginScreen = ({navigation}) => {
   // const [baseURL, setBaseURL] = useState(null);
   const [state, setState] = useState({
     tag: 'login',
-    username: 'RC-172',
-    password: '123',
+    username: '',
+    password: '',
   });
   const {
     signIn,
@@ -72,7 +73,6 @@ const LoginScreen = ({navigation}) => {
   const getLoginURL = async () => {
     try {
       const url = await AsyncStorageLib.getItem(storageVarNames.url);
-      console.log('login ', {url});
       if (!url) {
         navigation.navigate('OptionsScreen', {screen: 'URLOptionsScreen'});
         return;
@@ -85,9 +85,7 @@ const LoginScreen = ({navigation}) => {
 
   const loginHandler = async () => {
     try {
-      console.log({url: `${baseURL}${LOGIN}`});
       const {data} = await axios.post(`${baseURL}${LOGIN}`, state);
-      console.log('data is', data);
       if (data.error !== 0) {
         Alert.alert('ERROR!!', data.error_msg);
         return;
@@ -97,9 +95,7 @@ const LoginScreen = ({navigation}) => {
       if (area) {
         setUserArea(JSON.parse(area));
         setIsLoggedIn(true);
-        // console.log('area is set', area);
       } else {
-        // console.log('area is not set', area);
         navigation.navigate('OptionsScreen', {screen: 'AreaOptionsScreen'});
       }
     } catch (e) {
@@ -111,8 +107,7 @@ const LoginScreen = ({navigation}) => {
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor={MAIN_COLOR} barStyle="light-content" />
         <View style={styles.header}>
-          <Text style={styles.text_header}>Welcome!</Text>
-          {/* <Text>{JSON.stringify(state)}</Text> */}
+          <Text style={styles.text_header}>Welcome To Defence Clubs</Text>
         </View>
         <Animatable.View animation="fadeInUpBig" style={styles.footer}>
           {/* username field */}

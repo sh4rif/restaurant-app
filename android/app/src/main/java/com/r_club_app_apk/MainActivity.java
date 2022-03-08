@@ -1,7 +1,9 @@
-package com.erv_order_app_v2;
+package com.r_club_app_apk;
 
 import com.facebook.react.ReactActivity;
+import org.devio.rn.splashscreen.SplashScreen;
 import android.os.Bundle;
+
 
 public class MainActivity extends ReactActivity {
 
@@ -11,12 +13,14 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "erv_order_app_v2";
+    return "r_club_app_apk";
   }
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(null);
+    // super.onCreate(null);
+    SplashScreen.show(this);
+    super.onCreate(savedInstanceState);
   }
 
   // @Override 

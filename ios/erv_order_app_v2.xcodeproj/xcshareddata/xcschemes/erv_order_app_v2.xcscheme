@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "erv_order_app_v2.app"
-               BlueprintName = "erv_order_app_v2"
-               ReferencedContainer = "container:erv_order_app_v2.xcodeproj">
+               BuildableName = "r_club_app_apk.app"
+               BlueprintName = "r_club_app_apk"
+               ReferencedContainer = "container:r_club_app_apk.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "erv_order_app_v2Tests.xctest"
-               BlueprintName = "erv_order_app_v2Tests"
-               ReferencedContainer = "container:erv_order_app_v2.xcodeproj">
+               BuildableName = "r_club_app_apkTests.xctest"
+               BlueprintName = "r_club_app_apkTests"
+               ReferencedContainer = "container:r_club_app_apk.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "erv_order_app_v2.app"
-            BlueprintName = "erv_order_app_v2"
-            ReferencedContainer = "container:erv_order_app_v2.xcodeproj">
+            BuildableName = "r_club_app_apk.app"
+            BlueprintName = "r_club_app_apk"
+            ReferencedContainer = "container:r_club_app_apk.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "erv_order_app_v2.app"
-            BlueprintName = "erv_order_app_v2"
-            ReferencedContainer = "container:erv_order_app_v2.xcodeproj">
+            BuildableName = "r_club_app_apk.app"
+            BlueprintName = "r_club_app_apk"
+            ReferencedContainer = "container:r_club_app_apk.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

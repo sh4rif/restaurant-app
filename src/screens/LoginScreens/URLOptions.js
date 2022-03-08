@@ -36,7 +36,6 @@ const URLOptionsScreen = ({navigation}) => {
   const getStoredUrl = async () => {
     try {
       const url = await AsyncStorageLib.getItem(storageVarNames.url);
-      console.log({storedURL: url});
       setUrl(url || 'http://192.168.2.15/api/');
     } catch (e) {}
   };
@@ -48,8 +47,6 @@ const URLOptionsScreen = ({navigation}) => {
     }
     try {
       await AsyncStorageLib.setItem(storageVarNames.url, address);
-      // const area = await AsyncStorageLib.getItem(storageVarNames.url)
-      // console.log({area});
       navigation.navigate('LoginScreen');
     } catch (e) {
       console.log('error:-', e);

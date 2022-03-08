@@ -28,7 +28,7 @@ function Routes() {
   const [baseURL, setBaseURL] = useState(null);
   const [member, setMember] = useState(null);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [bookedOrder, setBookedOrder] = useState([]);
+  const [bookedOrder, setBookedOrder] = useState({member_id: null, data: []});
 
   useEffect(() => {
     getArea();
@@ -38,19 +38,13 @@ function Routes() {
     try {
       const area = await AsyncStorageLib.getItem(storageVarNames.area);
       setUserArea(JSON.parse(area));
-      // console.log('Routes useEffect loaded', area);
-      // console.log({myarea: JSON.parse(area)});
     } catch (e) {}
   };
 
   const signIn = payload => {
-    // console.log({username, password});
-    // return true;
-    console.log('signing in', payload);
     setUser({...payload});
   };
   const signOut = () => {
-    // clear localstore
     setUser(null);
     setIsLoggedIn(null);
     setUserArea(null);

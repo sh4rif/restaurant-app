@@ -1,25 +1,15 @@
 import React, {useState, useEffect, useContext} from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {CheckBox} from 'react-native-elements';
-import axios from 'axios';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  Alert,
-} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, FlatList} from 'react-native';
 
 import {MainContext} from '../../../components/context';
-import {ERR_CLR, MAIN_COLOR, SUCCESS_COLOR} from '../../../constants/colors';
-import DismissKeyboard from '../../../components/DismissKeyboard';
 import {formatNumber} from '../../../utils/functions';
-import {GET_ORDER} from '../../../constants';
+import DismissKeyboard from '../../../components/DismissKeyboard';
+import {ERR_CLR, MAIN_COLOR, SUCCESS_COLOR} from '../../../constants/colors';
 
 const ViewBookedTableOrderScreen = ({navigation}) => {
-  const {userArea, selectedTable, bookedOrder} = useContext(MainContext);
+  const {userArea, selectedTable, bookedOrder, setOrder, order} =
+    useContext(MainContext);
 
   const [total, setTotal] = useState({
     taxable: 0,
@@ -29,14 +19,13 @@ const ViewBookedTableOrderScreen = ({navigation}) => {
   });
 
   useEffect(() => {
-    calculateTotal(bookedOrder);
+    calculateTotal(bookedOrder.data);
     const unsubscribe = navigation.addListener('focus', e => {
-      calculateTotal(bookedOrder);
+      calculateTotal(bookedOrder.data);
     });
 
     return unsubscribe;
   }, [navigation, bookedOrder]);
-
 
   const calculateTotal = items => {
     let taxable = 0;
@@ -52,10 +41,7 @@ const ViewBookedTableOrderScreen = ({navigation}) => {
         taxable += row_total;
         const row_tax = (row_total / 100) * tax_rate;
         taxable_amounts.push(row_tax);
-        // console.log({price, tax_rate, qty, row_total, row_tax});
       });
-
-    // console.log({taxable_items});
 
     const non_taxable_items = items
       .filter(ord => !ord.TAXABLE && ord.checked)
@@ -68,7 +54,6 @@ const ViewBookedTableOrderScreen = ({navigation}) => {
 
     const tax = Math.ceil(taxable_amounts.reduce((a, b) => a + b, 0));
     const sum = tax + non_taxable + taxable;
-    // console.log({tax, sum});
     setTotal({...total, non_taxable, taxable, tax, sum});
   };
 
@@ -108,6 +93,7 @@ const ViewBookedTableOrderScreen = ({navigation}) => {
   };
 
   const addMoreItems = () => {
+    setOrder({...order, member_id: bookedOrder.member_id});
     navigation.navigate('Menu', {screen: 'MenuScreen'});
   };
 
@@ -121,12 +107,12 @@ const ViewBookedTableOrderScreen = ({navigation}) => {
           <Text style={{...styles.headerTxt}}>Item Name</Text>
         </View>
         <View style={{...styles.header1, width: '15%'}}>
-          <Text style={styles.headerTxt}>QOT SR</Text>
+          <Text style={styles.headerTxt}>KOT SR</Text>
         </View>
         <View style={{...styles.header1, width: '15%'}}>
           <Text style={{...styles.headerTxt}}>Item ID</Text>
         </View>
-        <View style={{...styles.header1, width: '15%'}}>
+        <View style={{...styles.header1, width: '10%'}}>
           <Text style={styles.headerTxt}>Qty</Text>
         </View>
       </View>
@@ -147,6 +133,9 @@ const ViewBookedTableOrderScreen = ({navigation}) => {
         </View>
         <View style={{...styles.menuBody, width: '55%'}}>
           <Text style={styles.bodyTxt}>{item.item_name}</Text>
+          {item.comments ? (
+            <Text style={styles.bodyTxt}>{item.comments}</Text>
+          ) : null}
         </View>
         <View style={{...styles.menuBody, alignItems: 'center', width: '15%'}}>
           <Text style={styles.bodyTxt}>{item.qot_sr}</Text>
@@ -154,8 +143,8 @@ const ViewBookedTableOrderScreen = ({navigation}) => {
         <View style={{...styles.menuBody, alignItems: 'center', width: '15%'}}>
           <Text style={styles.bodyTxt}>{item.item_id}</Text>
         </View>
-        <View style={{...styles.menuBody, alignItems: 'center', width: '15%'}}>
-          <Text style={styles.bodyTxt}>{item.qty}</Text>
+        <View style={{...styles.menuBody, alignItems: 'center', width: '10%'}}>
+          <Text style={styles.bodyTxtQty}>{item.qty}</Text>
         </View>
       </View>
     );
@@ -169,23 +158,11 @@ const ViewBookedTableOrderScreen = ({navigation}) => {
             <View style={{marginBottom: -10, flexDirection: 'row'}}>
               <View style={{width: '50%', flexDirection: 'row'}}>
                 <Text style={styles.member}>Member</Text>
-                <Text
-                  style={{
-                    ...styles.member,
-                    color: MAIN_COLOR,
-                    fontWeight: 'bold',
-                  }}>
-                  R-369
-                </Text>
+                <Text style={styles.main_text}>{bookedOrder.member_id}</Text>
               </View>
               <View style={{width: '50%', flexDirection: 'row'}}>
                 <Text style={styles.member}>ORDER NO</Text>
-                <Text
-                  style={{
-                    ...styles.member,
-                    color: MAIN_COLOR,
-                    fontWeight: 'bold',
-                  }}>
+                <Text style={styles.main_text}>
                   {selectedTable && selectedTable.order_no}
                 </Text>
               </View>
@@ -193,23 +170,11 @@ const ViewBookedTableOrderScreen = ({navigation}) => {
             <View style={{marginBottom: 5, flexDirection: 'row'}}>
               <View style={{width: '50%', flexDirection: 'row'}}>
                 <Text style={styles.member}>Area</Text>
-                <Text
-                  style={{
-                    ...styles.member,
-                    color: MAIN_COLOR,
-                    fontWeight: 'bold',
-                  }}>
-                  {userArea.AREA_DESC}
-                </Text>
+                <Text style={styles.main_text}>{userArea.AREA_DESC}</Text>
               </View>
               <View style={{flexDirection: 'row'}}>
                 <Text style={styles.member}>Table</Text>
-                <Text
-                  style={{
-                    ...styles.member,
-                    color: ERR_CLR,
-                    fontWeight: 'bold',
-                  }}>
+                <Text style={{...styles.main_text, color: ERR_CLR}}>
                   {selectedTable && selectedTable.name}
                 </Text>
               </View>
@@ -218,7 +183,7 @@ const ViewBookedTableOrderScreen = ({navigation}) => {
             <FlatList
               numColumns={1}
               keyExtractor={(item, index) => index.toString()}
-              data={bookedOrder}
+              data={bookedOrder.data}
               renderItem={renderItems}
             />
             {renderTotal()}
@@ -265,9 +230,6 @@ const styles = StyleSheet.create({
   menuWrapper: {
     backgroundColor: '#fff',
     flex: 1,
-    // flexDirection: 'row',
-    // flexWrap: 'wrap',
-    // alignItems: 'flex-start',
   },
   headerTxt: {
     fontSize: 18,
@@ -277,6 +239,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   bodyTxt: {fontWeight: '600', fontSize: 16},
+  commentsTxt: {fontSize: 16, color: '#ccc'},
+  bodyTxtQty: {fontWeight: 'bold', fontSize: 22, color: MAIN_COLOR},
   menuBody: {justifyContent: 'center', padding: 5},
   textInput: {
     marginTop: -2,
@@ -314,6 +278,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     paddingHorizontal: 25,
     paddingVertical: 10,
+  },
+  main_text: {
+    fontSize: 20,
+    paddingHorizontal: 25,
+    paddingVertical: 10,
+    color: MAIN_COLOR,
+    fontWeight: 'bold',
   },
   row: {flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 5},
   totalWrapper: {

@@ -29,6 +29,7 @@ const MenuScreen = ({navigation}) => {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', e => {
       getData();
+      console.log('order is', order);
     });
 
     return unsubscribe;
@@ -115,7 +116,7 @@ const MenuScreen = ({navigation}) => {
           flexDirection: 'row',
           backgroundColor: index % 2 === 0 ? '#fff' : '#f2f2f2',
         }}>
-        <View style={{...styles.menuBody, width: '10%'}}>
+        <View style={{...styles.menuBody, width: '12%'}}>
           <Text style={styles.headerTxt}>
             <CheckBox
               checked={isChecked}
@@ -129,7 +130,7 @@ const MenuScreen = ({navigation}) => {
         <View
           style={{
             ...styles.menuBody,
-            width: '55%',
+            width: '53%',
             alignItems: 'flex-start',
             justifyContent: 'center',
           }}>
@@ -156,60 +157,60 @@ const MenuScreen = ({navigation}) => {
   return (
     <>
       <StatusBar backgroundColor={MAIN_COLOR} barStyle="light-content" />
-      <DismissKeyboard>
-        <View style={styles.body}>
+
+      <View style={styles.body}>
+        <DismissKeyboard>
           <VerifyMember member_id={order.member_id} />
-          <View style={styles.menuWrapper}>
-            <View style={styles.leftSide}>
-              <View style={{...styles.header1, marginBottom: 5}}>
-                <Text style={{...styles.headerTxt, color: '#fff'}}>
-                  CATEGORIES
+        </DismissKeyboard>
+        <View style={styles.menuWrapper}>
+          <View style={styles.leftSide}>
+            <View style={{...styles.header1, marginBottom: 5}}>
+              <Text style={{...styles.headerTxt, color: '#fff'}}>
+                CATEGORIES
+              </Text>
+            </View>
+            <ClassesMenu
+              data={classes}
+              onPress={onClassClick}
+              selectedClassId={selectedClassId}
+            />
+          </View>
+          <View style={styles.rightSide}>
+            <View style={{flexDirection: 'row'}}>
+              <View
+                style={{
+                  ...styles.header1,
+                  width: '12%',
+                }}>
+                <Text style={{...styles.headerTxt, color: '#fff'}}>ADD</Text>
+              </View>
+              <View style={{...styles.header1, width: '50%'}}>
+                <Text
+                  style={{
+                    ...styles.headerTxt,
+                    letterSpacing: 1,
+                    color: '#fff',
+                  }}>
+                  ITEM NAME
                 </Text>
               </View>
-              <ClassesMenu
-                data={classes}
-                onPress={onClassClick}
-                selectedClassId={selectedClassId}
-              />
-            </View>
-            <View style={styles.rightSide}>
-              <View style={{flexDirection: 'row'}}>
-                <View
-                  style={{
-                    ...styles.header1,
-                    width: '12%',
-                  }}>
-                  <Text style={{...styles.headerTxt, color: '#fff'}}>ADD</Text>
-                </View>
-                <View style={{...styles.header1, width: '50%'}}>
-                  <Text
-                    style={{
-                      ...styles.headerTxt,
-                      letterSpacing: 1,
-                      color: '#fff',
-                    }}>
-                    ITEM NAME
-                  </Text>
-                </View>
-                <View style={{...styles.header1, width: '20%'}}>
-                  <Text style={[styles.headerTxt, {color: '#fff'}]}>
-                    ITEM ID
-                  </Text>
-                </View>
-                <View style={{...styles.header1, width: '18%'}}>
-                  <Text style={{...styles.headerTxt, color: '#fff'}}>QTY</Text>
-                </View>
+              <View style={{...styles.header1, width: '20%'}}>
+                <Text style={[styles.headerTxt, {color: '#fff'}]}>ITEM ID</Text>
               </View>
-              <FlatList
-                numColumns={1}
-                keyExtractor={(item, index) => item.ITEM_ID}
-                data={selectedItems}
-                renderItem={renderMenuBody}
-              />
+              <View style={{...styles.header1, width: '18%'}}>
+                <Text style={{...styles.headerTxt, color: '#fff'}}>QTY</Text>
+              </View>
             </View>
+            <FlatList
+              keyboardShouldPersistTaps="always"
+              numColumns={1}
+              keyExtractor={(item, index) => item.ITEM_ID}
+              data={selectedItems}
+              renderItem={renderMenuBody}
+            />
           </View>
         </View>
-      </DismissKeyboard>
+      </View>
     </>
   );
 };

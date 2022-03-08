@@ -12,7 +12,7 @@ import {
   StatusBar,
 } from 'react-native';
 
-import {MAIN_COLOR} from '../../../constants/colors';
+import {ERR_CLR, MAIN_COLOR} from '../../../constants/colors';
 import VerifyMember from './VerifyMember';
 import DismissKeyboard from '../../../components/DismissKeyboard';
 import {MainContext} from '../../../components/context';
@@ -97,25 +97,26 @@ const FlatMenuScreen = ({navigation}) => {
 
   const search = val => {
     setSearchStr(val);
-    if (val) {
-      const filteredItems = items.filter(item => {
-        return (
-          item.ITEM_NAME.toLowerCase().indexOf(val.toLowerCase()) >= 0 ||
-          item.ITEM_ID.indexOf(val.trim()) >= 0
-        );
-      });
-
-      const newState = classes
-        .map(cls => {
-          const items = getSelectedIClassItem(filteredItems, cls.CLS_ID);
-          return {...cls, title: cls.CLS_DESC, data: items};
-        })
-        .filter(cls => cls.data.length);
-
-      setData(newState);
-    } else {
+    if (!val.trim()) {
       setData(stateBkup);
+      return;
     }
+
+    const filteredItems = items.filter(item => {
+      return (
+        item.ITEM_NAME.toLowerCase().indexOf(val.toLowerCase()) >= 0 ||
+        item.ITEM_ID.indexOf(val.trim()) >= 0
+      );
+    });
+
+    const newState = classes
+      .map(cls => {
+        const items = getSelectedIClassItem(filteredItems, cls.CLS_ID);
+        return {...cls, title: cls.CLS_DESC, data: items};
+      })
+      .filter(cls => cls.data.length);
+
+    setData(newState);
   };
 
   const ItemHeaders = () => {
@@ -190,39 +191,47 @@ const FlatMenuScreen = ({navigation}) => {
   return (
     <>
       <StatusBar backgroundColor={MAIN_COLOR} barStyle="light-content" />
-      <DismissKeyboard>
-        <View style={styles.body}>
-          <VerifyMember member_id={order.member_id} />
+      <View style={styles.body}>
+        <VerifyMember member_id={order.member_id} />
+        <DismissKeyboard>
           <View style={styles.row1}>
             <Text style={styles.memberLabel}>Filter : </Text>
             <TextInput
-              placeholder="ITEM NAME HERE..."
+              placeholder="ITEM NAME OR ID HERE..."
               placeholderTextColor="#BBB"
-              style={{...styles.textInput, color: colors.text, width: '70%'}}
+              style={{...styles.textInput, color: colors.text, width: '50%'}}
               autoCapitalize="words"
               onChangeText={search}
               value={searchStr}
             />
+            <TouchableOpacity
+              style={{...styles.button, width: 130, backgroundColor: ERR_CLR}}
+              onPress={() => search('')}>
+              <Text style={styles.text}>
+                <FontAwesome name="eraser" size={20} style={{color: '#fff'}} />
+                CLEAR
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={{...styles.button, width: 50}}
               onPress={getData}>
               <FontAwesome name="refresh" size={25} style={{color: '#fff'}} />
             </TouchableOpacity>
           </View>
-
-          <View style={styles.menuWrapper}>
-            <View>
-              <ItemHeaders />
-              <SectionList
-                sections={data}
-                keyExtractor={(item, index) => index.toString()}
-                renderSectionHeader={renderHeader}
-                renderItem={renderItems}
-              />
-            </View>
+        </DismissKeyboard>
+        <View style={styles.menuWrapper}>
+          <View>
+            <ItemHeaders />
+            <SectionList
+              keyboardShouldPersistTaps="always"
+              sections={data}
+              keyExtractor={(item, index) => index.toString()}
+              renderSectionHeader={renderHeader}
+              renderItem={renderItems}
+            />
           </View>
         </View>
-      </DismissKeyboard>
+      </View>
     </>
   );
 };

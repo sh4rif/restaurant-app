@@ -7,11 +7,11 @@
 #define TIMEOUT_SECONDS 600
 #define TEXT_TO_LOOK_FOR @"Welcome to React"
 
-@interface erv_order_app_v2Tests : XCTestCase
+@interface r_club_app_apkTests : XCTestCase
 
 @end
 
-@implementation erv_order_app_v2Tests
+@implementation r_club_app_apkTests
 
 - (BOOL)findSubviewInView:(UIView *)view matching:(BOOL(^)(UIView *view))test
 {

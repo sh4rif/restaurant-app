@@ -3,7 +3,7 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 
 platform :ios, '11.0'
 
-target 'erv_order_app_v2' do
+target 'r_club_app_apk' do
   config = use_native_modules!
 
   use_react_native!(
@@ -12,7 +12,9 @@ target 'erv_order_app_v2' do
     :hermes_enabled => false
   )
 
-  target 'erv_order_app_v2Tests' do
+  pod 'react-native-splash-screen', :path => '../node_modules/react-native-splash-screen'
+
+  target 'r_club_app_apkTests' do
     inherit! :complete
     # Pods for testing
   end

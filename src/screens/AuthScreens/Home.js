@@ -1,12 +1,31 @@
 import React, {useContext, useEffect} from 'react';
 import axios from 'axios';
-import {View, Text, StyleSheet, StatusBar, SafeAreaView} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  StatusBar,
+  SafeAreaView,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import AsyncStorageLib from '@react-native-async-storage/async-storage';
 
-import {MAIN_COLOR} from '../../constants/colors';
+import {MAIN_COLOR, SUCCESS_COLOR} from '../../constants/colors';
 import {MainContext} from '../../components/context';
 import ButtonComponent from '../../components/button';
-import {blankOrder, GET_ITEMS, storageVarNames} from '../../constants';
+import {GET_ITEMS, storageVarNames} from '../../constants';
+const blankOrder = {
+  id: '',
+  empno: '',
+  qot: '',
+  table_id: '',
+  order_id: '',
+  order_no: '',
+  order_date: '',
+  member_id: '',
+  order: [],
+};
 
 const HomeScreen = ({navigation}) => {
   const {state, setState, user, setOrder, baseURL, setBaseURL} =
@@ -32,9 +51,7 @@ const HomeScreen = ({navigation}) => {
         url = base_url;
         setBaseURL(base_url);
       }
-      console.log('url for getting items', `${url}${GET_ITEMS}`);
       const {data} = await axios.get(`${url}${GET_ITEMS}`);
-      console.log({want_to_run_this: data});
       setState({
         ...state,
         items: data.items,
@@ -64,23 +81,34 @@ const HomeScreen = ({navigation}) => {
             </Text>
           </View>
         </View>
-        <View style={styles.row2}>
+        {/* <View style={styles.row2}>
           <Text style={{...styles.text, color: '#fff'}}>
             {user && user.full_name}
           </Text>
+        </View> */}
+        <View style={styles.row2}>
+          <TouchableOpacity onPress={onTakeOrderPress}>
+            <Text style={{...styles.text, color: '#fff'}}>
+              {user && user.full_name}
+            </Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.row3}>
-          <Text style={styles.text}>
-            <ButtonComponent title="Take Order" onPress={onTakeOrderPress} />
-          </Text>
+          <ButtonComponent
+            title="Take Order"
+            onPress={onTakeOrderPress}
+            style={{width: '100%', height: 70}}
+          />
         </View>
         <View style={styles.row4}>
-          <View style={styles.row4col1}>
-            {/* <Text style={styles.text}>{JSON.stringify(userArea)}</Text> */}
-          </View>
-          <View style={styles.row4col2}>
-            {/* <Text style={styles.text}>8</Text> */}
-          </View>
+          <Image
+            source={require('../../../assets/images/logo.png')}
+            style={{width: 300, height: 300}}
+          />
+        </View>
+        <View style={styles.row3}>
+          <View style={styles.row4col1}></View>
+          <View style={styles.row4col2}></View>
         </View>
       </View>
     </SafeAreaView>
@@ -90,7 +118,6 @@ const HomeScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   body: {
     flex: 1,
-    //   backgroundColor: '#00f',
     flexDirection: 'column',
     alignItems: 'stretch',
     justifyContent: 'space-evenly',
@@ -102,57 +129,49 @@ const styles = StyleSheet.create({
   row2: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: 'red',
+    backgroundColor: SUCCESS_COLOR,
     alignItems: 'center',
     justifyContent: 'center',
   },
   row3: {
     flex: 1,
     flexDirection: 'row',
-    //   backgroundColor: 'green',
     alignItems: 'center',
     justifyContent: 'center',
   },
   row4: {
-    flex: 7,
+    flex: 5,
     flexDirection: 'row',
-    //   backgroundColor: 'blue',
     alignItems: 'stretch',
     justifyContent: 'center',
   },
   view1: {
     flex: 1,
-    //   backgroundColor: '#0ff',
     alignItems: 'center',
     justifyContent: 'center',
   },
   view2: {
     flex: 2,
-    //   backgroundColor: '#f0f',
     alignItems: 'center',
     justifyContent: 'center',
   },
   view3: {
     flex: 3,
-    //   backgroundColor: '#ff0',
     alignItems: 'center',
     justifyContent: 'center',
   },
   row4col1: {
     flex: 1,
-    //   backgroundColor: '#0ff',
     alignItems: 'center',
     justifyContent: 'center',
   },
   row4col2: {
     flex: 1,
-    //   backgroundColor: '#f0f',
     alignItems: 'center',
     justifyContent: 'center',
   },
   text: {
     fontSize: 26,
-    // color: '#fff',
     fontStyle: 'italic',
     fontWeight: 'bold',
   },
